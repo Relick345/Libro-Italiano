@@ -1,0 +1,2970 @@
+<!DOCTYPE html>
+<html lang="it" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STEPHEN KING — LA ZONA MORTA | Esperienza Cinematografica Interattiva</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts Sperling & Kupfer / Pickwick -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Rubik+Dirt&family=Special+Elite&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    :root {
+      --bg-void: #020204;
+      --king-red: #e31b23;
+      --king-red-dark: #7a090e;
+      --pickwick-gold: #f5a623;
+      --chalk-white: #f4f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-void);
+      color: var(--chalk-white);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      touch-action: pan-y;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #050508;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--king-red), var(--pickwick-gold));
+      border-radius: 999px;
+    }
+
+    #webgl-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .cinema-atmosphere {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.92) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 14%, transparent 86%, rgba(0,0,0,0.95) 100%);
+    }
+
+    .film-grain {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: radial-gradient(rgba(255,255,255,0.8) 1px, transparent 0);
+      background-size: 3px 3px;
+      animation: grainShift 0.22s steps(2) infinite;
+    }
+
+    @keyframes grainShift {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(-1px, 1px); }
+      100% { transform: translate(1px, -1px); }
+    }
+
+    #psychic-shockwave {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.95) 0%, rgba(227,27,35,0.75) 35%, rgba(0,0,0,0.98) 80%);
+      mix-blend-mode: screen;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #smooth-content {
+      position: relative;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .interactive-zone {
+      pointer-events: auto;
+    }
+
+    .font-king { font-family: 'Permanent Marker', cursive; }
+    .font-zona { font-family: 'Rubik Dirt', cursive; }
+    .font-typewriter { font-family: 'Special Elite', monospace; }
+    .font-book { font-family: 'EB Garamond', Georgia, serif; }
+
+    .reveal-section {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .tilt-card {
+      background: linear-gradient(155deg, rgba(16, 16, 22, 0.9) 0%, rgba(6, 6, 9, 0.96) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px);
+      transition: transform 0.22s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+    }
+    .tilt-card:hover {
+      border-color: rgba(227, 27, 35, 0.65);
+      box-shadow: 0 22px 60px -10px rgba(227, 27, 35, 0.32), 0 0 25px rgba(245, 166, 35, 0.15);
+    }
+
+    .book-sheet {
+      background: radial-gradient(circle at 18% 15%, #fdf8ee 0%, #f1e6ce 62%, #dfd0b0 100%);
+      color: #161310;
+      box-shadow: inset 28px 0 40px rgba(0,0,0,0.22), inset -3px 0 8px rgba(0,0,0,0.18), 0 25px 70px rgba(0,0,0,0.95);
+      transform-origin: left center;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+    }
+    .book-sheet.turning-page {
+      transform: perspective(1400px) rotateY(-26deg) scale(0.975);
+      opacity: 0.4;
+    }
+
+    .book-paragraph {
+      text-indent: 1.4em;
+      margin-bottom: 0.6em;
+      padding: 7px 11px;
+      border-radius: 8px;
+      border-left: 3px solid transparent;
+      transition: background-color 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+      position: relative;
+    }
+    .book-paragraph.no-indent { text-indent: 0; }
+    .book-paragraph:hover {
+      background: rgba(227, 27, 35, 0.08);
+      border-left-color: rgba(227, 27, 35, 0.45);
+    }
+    .book-paragraph.active-paragraph {
+      background: linear-gradient(90deg, rgba(245, 166, 35, 0.25) 0%, rgba(227, 27, 35, 0.09) 100%);
+      border-left-color: var(--king-red);
+      box-shadow: 0 6px 20px rgba(227, 27, 35, 0.12);
+      transform: translateX(2px);
+    }
+
+    .sync-word {
+      display: inline;
+      padding: 1px 2px;
+      margin: 0 -0.5px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.1s ease, color 0.1s ease, box-shadow 0.1s ease;
+      position: relative;
+    }
+    .sync-word:hover {
+      background-color: rgba(227, 27, 35, 0.22);
+      color: #7a090e;
+    }
+    .sync-word.word-passed {
+      color: #5c1916;
+      background-color: rgba(245, 166, 35, 0.24);
+    }
+    .sync-word.word-current {
+      background: linear-gradient(135deg, #161310 0%, #3b0a0d 100%);
+      color: #fde047 !important;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(227, 27, 35, 0.55), 0 0 0 1.5px #f5a623;
+      z-index: 2;
+    }
+
+    .sub-word {
+      display: inline-block;
+      padding: 0 3px;
+      border-radius: 4px;
+      transition: transform 0.1s ease, color 0.1s ease;
+    }
+    .sub-word.sub-passed { color: #fde68a; }
+    .sub-word.sub-current {
+      background: #e31b23;
+      color: #ffffff;
+      font-weight: 700;
+      transform: scale(1.08) translateY(-1px);
+      box-shadow: 0 0 14px rgba(227, 27, 35, 0.9);
+    }
+
+    @keyframes psychicPulse {
+      0%, 100% { text-shadow: 0 0 18px rgba(227, 27, 35, 0.75), 0 0 35px rgba(227, 27, 35, 0.35); }
+      50% { text-shadow: -2px 0 12px rgba(245, 166, 35, 0.9), 2px 0 24px rgba(227, 27, 35, 0.95); }
+    }
+    .psychic-glow { animation: psychicPulse 3s infinite ease-in-out; }
+
+    .eq-bar {
+      width: 3px;
+      background: var(--pickwick-gold);
+      border-radius: 2px;
+      animation: eqBounce 0.8s infinite ease-in-out alternate;
+    }
+    @keyframes eqBounce {
+      0% { height: 4px; }
+      100% { height: 16px; background: var(--king-red); }
+    }
+  </style>
+</head>
+<body class="selection:bg-red-600 selection:text-white">
+
+  <!-- Bagliore Visione Psichica -->
+  <div id="psychic-shockwave"></div>
+
+  <!-- Stage 3D & Atmosfera Cinema -->
+  <div id="webgl-stage"></div>
+  <div class="cinema-atmosphere"></div>
+  <div class="film-grain"></div>
+
+  <!-- Barra Superiore di Avanzamento Scroll -->
+  <div class="fixed top-0 left-0 right-0 h-1 z-50 bg-white/5">
+    <div id="scroll-progress-bar" class="h-full w-0 bg-gradient-to-r from-red-600 via-amber-500 to-red-600 shadow-[0_0_15px_#e31b23] transition-all duration-150"></div>
+  </div>
+
+  <!-- HEADER HUD FLOTTANTE -->
+  <header class="fixed top-0 left-0 right-0 z-40 px-4 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-b from-black/95 via-black/80 to-transparent backdrop-blur-md border-b border-white/5">
+    <a href="#sec-hero" class="interactive-zone flex items-center gap-3 group cursor-pointer">
+      <div class="w-10 h-6 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+        <svg viewBox="0 0 90 50" class="w-full h-full drop-shadow-[0_0_10px_rgba(245,166,35,0.6)]">
+          <path d="M4,25 Q45,-8 86,25 Q45,58 4,25 Z" fill="#f5a623" stroke="#000" stroke-width="2.5"/>
+          <circle cx="45" cy="25" r="14" fill="#ffffff" stroke="#000" stroke-width="2.5"/>
+          <circle cx="45" cy="25" r="5.5" fill="#000000"/>
+        </svg>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-king text-red-600 text-lg sm:text-xl tracking-wider leading-none drop-shadow-[0_0_12px_rgba(227,27,35,0.65)]">STEPHEN KING</span>
+        <span class="font-zona text-white/90 text-[10px] sm:text-xs tracking-[0.25em] mt-0.5">LA ZONA MORTA • PICKWICK</span>
+      </div>
+    </a>
+
+    <!-- Navigazione a Capitoli -->
+    <nav class="interactive-zone hidden md:flex items-center gap-1.5 bg-zinc-950/90 border border-white/10 p-1 rounded-full shadow-2xl">
+      <button onclick="scrollToChapter('sec-hero')" data-nav="sec-hero" class="nav-chapter-btn active bg-red-600 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">
+        I. Libro 3D
+      </button>
+      <button onclick="scrollToChapter('sec-origine')" data-nav="sec-origine" class="nav-chapter-btn text-zinc-400 hover:text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">
+        II. Genesi 1979
+      </button>
+      <button onclick="scrollToChapter('sec-visioni')" data-nav="sec-visioni" class="nav-chapter-btn text-zinc-400 hover:text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">
+        III. Visioni
+      </button>
+      <button onclick="scrollToChapter('sec-finale')" data-nav="sec-finale" class="nav-chapter-btn text-zinc-400 hover:text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">
+        IV. Pagine 458-459 &amp; Film
+      </button>
+    </nav>
+
+    <!-- Controlli Colonna Sonora Sinfonica -->
+    <div class="interactive-zone flex items-center gap-2">
+      <button id="btn-dark-music" onclick="toggleHauntedMusic()" class="px-3.5 py-1.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-white/15 hover:border-amber-500/60 text-xs font-semibold tracking-wide flex items-center gap-2 transition-all shadow-lg">
+        <span id="music-icon" class="text-amber-400">🎻</span>
+        <span id="music-status-text" class="hidden sm:inline">Colonna Sonora: OFF</span>
+        <div id="music-eq" class="hidden items-end gap-0.5 h-3.5 ml-1">
+          <div class="eq-bar" style="animation-delay:0s"></div>
+          <div class="eq-bar" style="animation-delay:0.2s"></div>
+          <div class="eq-bar" style="animation-delay:0.4s"></div>
+        </div>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENUTO PRINCIPALE -->
+  <main id="smooth-content" class="w-full">
+
+    <!-- CAPITOLO I: HERO LIBRO 3D INTERATTIVO -->
+    <section id="sec-hero" class="relative min-h-screen w-full flex flex-col justify-between pt-24 pb-10 px-4 sm:px-10">
+      <div class="interactive-zone self-center mt-2">
+        <div class="inline-flex items-center gap-2.5 px-4 sm:px-5 py-1.5 rounded-full bg-black/80 border border-red-600/45 shadow-[0_0_30px_rgba(227,27,35,0.3)] backdrop-blur-md">
+          <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+          <span class="text-[11px] sm:text-xs uppercase tracking-[0.2em] text-zinc-200 font-semibold text-center">
+            Edizione Sperling &amp; Kupfer • Pickwick • ISBN 978-88-6836-127-3
+          </span>
+        </div>
+      </div>
+
+      <div class="my-auto pointer-events-none flex justify-between items-center max-w-7xl w-full mx-auto px-4">
+        <div class="hidden xl:flex flex-col gap-2 max-w-xs bg-black/60 border-l-2 border-red-600 p-4 rounded-r-xl backdrop-blur-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">Il Contatto</span>
+          <p class="font-book italic text-base text-zinc-200 leading-relaxed">
+            «Riesce a vedere il passato e il futuro delle persone attraverso un semplice tocco, un contatto...»
+          </p>
+        </div>
+
+        <div class="hidden xl:flex flex-col gap-2 max-w-xs bg-black/60 border-r-2 border-amber-500 p-4 rounded-l-xl text-right backdrop-blur-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-red-400 font-bold">La Critica</span>
+          <p class="font-book italic text-base text-zinc-200 leading-relaxed">
+            «Un romanzo dal ritmo perfetto. Una storia ad alta tensione come solo Stephen King sa raccontare.»
+          </p>
+          <span class="text-[11px] text-zinc-400 font-semibold">— Los Angeles Times</span>
+        </div>
+      </div>
+
+      <div class="interactive-zone flex flex-col items-center gap-3.5 z-20">
+        <div class="px-4 py-1.5 rounded-full bg-black/80 border border-white/10 text-zinc-300 text-xs tracking-wider flex items-center gap-2 backdrop-blur-md text-center">
+          <span>🖱️ Trascina il libro 3D per esplorarlo a 360°</span>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-2.5">
+          <button onclick="toggleBookCoverOpen()" class="px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(227,27,35,0.6)] hover:scale-105 transition-all flex items-center gap-2">
+            <span>📖</span> <span id="btn-open-book-label">Apri Copertina 3D</span>
+          </button>
+          <button onclick="flipBookFrontBack()" class="px-5 py-2.5 rounded-full bg-zinc-900/95 hover:bg-zinc-800 border border-amber-500/60 text-amber-400 font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(245,166,35,0.25)] hover:scale-105 transition-all flex items-center gap-2">
+            <span>🔄</span> <span id="btn-flip-book-label">Guarda il Retro</span>
+          </button>
+          <button onclick="triggerHeroPsychicPulse()" class="px-5 py-2.5 rounded-full bg-zinc-900/95 hover:bg-zinc-800 border border-white/20 hover:border-red-500 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2">
+            <span>👁️</span> <span>Impulso Zona Morta</span>
+          </button>
+          <button onclick="scrollToChapter('sec-origine')" class="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2">
+            <span>Scendi nell'Archivio</span> <span>↓</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPITOLO II: AUTORE, 1979 E CINEMA -->
+    <section id="sec-origine" class="reveal-section relative min-h-screen w-full flex items-center py-28 px-4 sm:px-10">
+      <div class="interactive-zone max-w-6xl mx-auto w-full">
+        <div class="text-center mb-14">
+          <span class="inline-block px-4 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-[0.28em] mb-3">
+            CAPITOLO II • GENESI DI UN CAPOLAVORO
+          </span>
+          <h2 class="font-zona text-3xl sm:text-5xl text-white tracking-wider drop-shadow-[0_0_25px_rgba(227,27,35,0.35)]">
+            L'AUTORE, LA GENESI DEL 1979 E IL FILM
+          </h2>
+          <p class="mt-3 text-zinc-400 max-w-2xl mx-auto text-sm sm:text-base">
+            Esplora le radici dell'opera e l'iconica ambientazione di <strong class="text-white">Castle Rock</strong>.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-7">
+          <div class="tilt-card rounded-2xl p-7 border-t-4 border-t-red-600 relative overflow-hidden group" onmousemove="handleCardTilt(event, this)" onmouseleave="resetCardTilt(this)">
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full bg-red-600/20 text-red-400 text-[11px] font-bold uppercase tracking-widest">
+                L'Autore
+              </span>
+              <span class="font-typewriter text-xs text-zinc-500">PORTLAND, MAINE</span>
+            </div>
+            <h3 class="font-king text-2xl sm:text-3xl text-white mb-3 tracking-wide group-hover:text-red-500 transition-colors">
+              STEPHEN KING
+            </h3>
+            <p class="text-zinc-300 text-sm leading-relaxed mb-4">
+              Nato nel Maine il 21 settembre 1947, vive e lavora a Bangor con la moglie Tabitha. Con oltre <strong class="text-white">400 milioni di copie</strong> vendute, ha ridefinito il thriller psicologico e soprannaturale.
+            </p>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-5">
+              Con <em>La zona morta</em> abbandona i mostri tradizionali per affrontare l'angoscia del destino, dell'incomunicabilità e del fanatismo politico.
+            </p>
+            <div class="border-t border-white/10 pt-4 space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-zinc-400">Anno di nascita</span><strong class="text-white">21 Settembre 1947</strong></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Ambientazione chiave</span><strong class="text-amber-400">Maine / Castle Rock</strong></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Genere letterario</span><strong class="text-red-400">Thriller Psicologico</strong></div>
+            </div>
+          </div>
+
+          <div class="tilt-card rounded-2xl p-7 border-t-4 border-t-amber-500 relative overflow-hidden group" onmousemove="handleCardTilt(event, this)" onmouseleave="resetCardTilt(this)">
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-[11px] font-bold uppercase tracking-widest">
+                La Pubblicazione
+              </span>
+              <span class="font-typewriter text-xs text-zinc-500">VIKING PRESS • 1979</span>
+            </div>
+            <h3 class="font-king text-2xl sm:text-3xl text-white mb-3 tracking-wide group-hover:text-amber-400 transition-colors">
+              30 AGOSTO 1979
+            </h3>
+            <p class="text-zinc-300 text-sm leading-relaxed mb-4">
+              Quinto romanzo firmato da King, segna il debutto della cittadina di <strong class="text-white">Castle Rock</strong> e dello sceriffo George Bannerman.
+            </p>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-5">
+              L'edizione italiana <strong>Sperling &amp; Kupfer / Pickwick</strong> (tradotta da Tullio Dobner) si distingue per l'iconica copertina nera con l'occhio di gesso e il teschio nella pupilla.
+            </p>
+            <div class="border-t border-white/10 pt-4 space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-zinc-400">Traduzione Italiana</span><strong class="text-white">Tullio Dobner</strong></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Codice ISBN</span><strong class="text-amber-400">978-88-6836-127-3</strong></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Collana</span><strong class="text-white">Pickwick Bestseller</strong></div>
+            </div>
+          </div>
+
+          <div class="tilt-card rounded-2xl p-7 border-t-4 border-t-red-600 relative overflow-hidden group" onmousemove="handleCardTilt(event, this)" onmouseleave="resetCardTilt(this)">
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full bg-red-600/20 text-red-400 text-[11px] font-bold uppercase tracking-widest">
+                Il Cinema
+              </span>
+              <span class="font-typewriter text-xs text-zinc-500">CRONENBERG • 1983</span>
+            </div>
+            <h3 class="font-king text-2xl sm:text-3xl text-white mb-3 tracking-wide group-hover:text-red-500 transition-colors">
+              IL FILM DEL 1983
+            </h3>
+            <p class="text-zinc-300 text-sm leading-relaxed mb-4">
+              Nel 1983 il regista <strong class="text-white">David Cronenberg</strong> dirige l'adattamento con <strong class="text-white">Christopher Walken</strong> nei panni di Johnny Smith e <strong class="text-white">Martin Sheen</strong> in quelli di Greg Stillson.
+            </p>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-5">
+              Un thriller invernale e malinconico che traduce visivamente il dilemma morale e il dolore provato durante il contatto chiaroveggente.
+            </p>
+            <div class="border-t border-white/10 pt-4 space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-zinc-400">Johnny Smith</span><strong class="text-white">Christopher Walken</strong></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Greg Stillson</span><strong class="text-amber-400">Martin Sheen</strong></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Regia</span><strong class="text-white">David Cronenberg</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPITOLO III: TRAMA E VISIONI -->
+    <section id="sec-visioni" class="reveal-section relative min-h-screen w-full flex items-center py-28 px-4 sm:px-10">
+      <div class="interactive-zone max-w-6xl mx-auto w-full">
+        <div class="text-center mb-12">
+          <span class="inline-block px-4 py-1 rounded-full bg-red-600/15 border border-red-500/40 text-red-400 text-xs font-bold uppercase tracking-[0.28em] mb-3">
+            CAPITOLO III • LA CHIAROVEGGENZA TATTILE
+          </span>
+          <h2 class="font-zona text-3xl sm:text-5xl text-white tracking-wider">
+            I QUATTRO ATTI E LE VISIONI DI JOHNNY
+          </h2>
+          <p class="mt-2 text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
+            Seleziona un atto narrativo e tocca Johnny per rivelare la visione psichica corrispondente.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          <div class="lg:col-span-5 flex flex-col justify-between gap-3.5">
+            <button onclick="selectPlotNode(0)" id="plot-btn-0" class="plot-step-btn active text-left p-5 rounded-2xl bg-gradient-to-r from-red-950/70 to-zinc-950/90 border border-red-500 shadow-[0_0_30px_rgba(227,27,35,0.25)] transition-all">
+              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">
+                <span>Atto I • 1953–1970</span>
+                <span>N° 19</span>
+              </div>
+              <div class="text-lg font-bold text-white">1. La Ruota della Fortuna e il Coma</div>
+              <div class="text-xs text-zinc-400 mt-1">Il luna park con Sarah, la vincita sul 19 e lo schianto nel buio.</div>
+            </button>
+
+            <button onclick="selectPlotNode(1)" id="plot-btn-1" class="plot-step-btn text-left p-5 rounded-2xl bg-zinc-950/85 hover:bg-zinc-900/90 border border-white/10 transition-all">
+              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">
+                <span>Atto II • Maggio 1975</span>
+                <span>IL RISVEGLIO</span>
+              </div>
+              <div class="text-lg font-bold text-white">2. La Zona Morta e l'Assassino</div>
+              <div class="text-xs text-zinc-400 mt-1">Quattro anni e mezzo dopo: il tocco psichico e Frank Dodd a Castle Rock.</div>
+            </button>
+
+            <button onclick="selectPlotNode(2)" id="plot-btn-2" class="plot-step-btn text-left p-5 rounded-2xl bg-zinc-950/85 hover:bg-zinc-900/90 border border-white/10 transition-all">
+              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">
+                <span>Atto III • Il Comizio</span>
+                <span>L'APOCALISSE</span>
+              </div>
+              <div class="text-lg font-bold text-white">3. La Stretta di Mano a Greg Stillson</div>
+              <div class="text-xs text-zinc-400 mt-1">Il contatto col candidato rivela un futuro di olocausto nucleare.</div>
+            </button>
+
+            <button onclick="selectPlotNode(3)" id="plot-btn-3" class="plot-step-btn text-left p-5 rounded-2xl bg-zinc-950/85 hover:bg-zinc-900/90 border border-white/10 transition-all">
+              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">
+                <span>Atto IV • Jackson, NH</span>
+                <span>LO SCUDO UMANO</span>
+              </div>
+              <div class="text-lg font-bold text-white">4. Il Dilemma Morale e il Sacrificio</div>
+              <div class="text-xs text-zinc-400 mt-1">Lo scatto che smaschera Stillson salvando per sempre Sarah.</div>
+            </button>
+          </div>
+
+          <div class="lg:col-span-7 tilt-card rounded-3xl p-6 sm:p-9 flex flex-col justify-between relative overflow-hidden border border-white/15">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4 mb-5">
+              <div>
+                <span id="plot-tag" class="text-xs font-bold uppercase tracking-[0.2em] text-amber-400 block">
+                  ATTO I • IL DESTINO SUL NUMERO 19
+                </span>
+                <h3 id="plot-heading" class="font-zona text-2xl sm:text-3xl text-white mt-1">
+                  La Ruota della Fortuna e il Coma
+                </h3>
+              </div>
+              <span class="px-3.5 py-1.5 rounded-full bg-white/5 border border-white/15 text-[11px] font-semibold text-zinc-300">
+                La Zona Morta • 1970–1979
+              </span>
+            </div>
+
+            <p id="plot-description" class="text-zinc-200 text-base sm:text-lg leading-relaxed font-book mb-6">
+              Johnny Smith è un giovane insegnante di letteratura nel Maine, innamorato della collega Sarah Bracknell. Nell'autunno del 1970, dopo una serata al luna park in cui vince ripetutamente sul numero 19, il taxi su cui viaggia si schianta frontalmente nella notte: Johnny cade in un coma che durerà quattro anni e mezzo.
+            </p>
+
+            <div class="rounded-2xl bg-gradient-to-r from-amber-500/10 via-red-600/10 to-transparent border border-amber-500/35 p-5 mb-7">
+              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400 mb-1.5">
+                <span>👁️ SIMBOLO CHIAVE DELL'ATTO:</span>
+                <span id="symbol-name" class="text-white">LA RUOTA DELLA FORTUNA (N° 19)</span>
+              </div>
+              <p id="symbol-explanation" class="text-sm text-zinc-300 leading-relaxed">
+                Rappresenta la cieca casualità del destino umano: proprio nella notte più fortunata della sua giovinezza, la ruota gira bruscamente togliendo a Johnny la vita con Sarah.
+              </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2 border-t border-white/10">
+              <button onclick="openPsychicVisionExperience()" class="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_35px_rgba(227,27,35,0.6)] hover:shadow-[0_0_50px_rgba(227,27,35,0.9)] hover:scale-[1.01] transition-all flex items-center justify-center gap-3 group">
+                <span class="text-xl group-hover:scale-125 transition-transform">🖐️</span>
+                <span>TOCCA JOHNNY: ENTRA NELLA VISIONE PSICHICA</span>
+              </button>
+              <button onclick="scrollToChapter('sec-finale')" class="px-5 py-4 rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-xs font-bold uppercase tracking-wider text-zinc-200 transition-all">
+                Pagine Finali &amp; Film →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPITOLO IV: PAGINE 458-459 & CINEMA 35MM -->
+    <section id="sec-finale" class="reveal-section relative min-h-screen w-full flex items-center py-24 px-4 sm:px-8">
+      <div class="interactive-zone max-w-[1400px] mx-auto w-full">
+        <!-- Header Sezione Finale -->
+        <div class="flex flex-col xl:flex-row xl:items-end justify-between mb-8 gap-4">
+          <div>
+            <span class="inline-block px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-[0.25em] mb-2">
+              CAPITOLO IV • SINCRONIZZAZIONE PAROLA PER PAROLA (PAG. 458 E 459)
+            </span>
+            <h2 class="font-zona text-2xl sm:text-4xl text-white tracking-wider">
+              LA LETTERA A SARAH E L'ADDIO SULLA COLLINA DI POWNAL
+            </h2>
+          </div>
+
+          <!-- Pulsantiere Lettura & Gestione Voce -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button id="btn-main-leggi" onclick="handleMainLeggiButton()" class="px-6 sm:px-7 py-3 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm uppercase tracking-[0.16em] shadow-[0_0_35px_rgba(227,27,35,0.7)] hover:scale-105 transition-all flex items-center gap-2">
+              <span id="leggi-btn-icon" class="text-base">▶</span>
+              <span id="leggi-btn-text">Leggi</span>
+            </button>
+
+            <button id="btn-restart-leggi" onclick="restartSyncedReading()" class="hidden px-4 py-3 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-white/20 text-zinc-200 text-xs font-bold uppercase tracking-wider transition-all" title="Ricomincia da capo">
+              ↺ Dall'inizio
+            </button>
+
+            <label for="mp3-upload-input" id="mp3-connect-label" class="px-3.5 py-2.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-amber-500/40 text-amber-300 text-xs font-semibold cursor-pointer transition-all flex items-center gap-1.5" title="Carica un file audio esterno MP3 da sincronizzare">
+              <span>🎵</span>
+              <span id="mp3-connect-text">Carica Audio (03:41)</span>
+            </label>
+            <input id="mp3-upload-input" type="file" accept="audio/*" class="hidden" onchange="handleUserVoiceUpload(event)" />
+
+            <button id="btn-embed-export" onclick="exportSelfContainedHTML()" class="hidden px-3.5 py-2.5 rounded-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-400/50 text-emerald-300 text-xs font-semibold transition-all items-center gap-1.5" title="Esporta l'HTML con il file audio fuso permanentemente in Base64">
+              <span>💾</span>
+              <span>Incorpora MP3 nell'HTML</span>
+            </button>
+
+            <label for="mp4-upload-input" class="px-3.5 py-2.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-white/15 text-zinc-300 text-xs font-semibold cursor-pointer transition-all flex items-center gap-1.5">
+              <span>🎬</span>
+              <span>Video MP4</span>
+            </label>
+            <input id="mp4-upload-input" type="file" accept="video/mp4,video/webm,video/quicktime" class="hidden" onchange="handleUserVideoUpload(event)" />
+          </div>
+        </div>
+
+        <!-- Griglia: Pagina Stampata del Libro a Sinistra + Schermo Cinema 35mm a Destra -->
+        <div id="finale-cinema-stage" class="stage-standby grid grid-cols-1 lg:grid-cols-12 gap-7 items-stretch">
+
+          <!-- SINISTRA: FOGLIO STAMPATO SPERLING & KUPFER -->
+          <div class="lg:col-span-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between bg-zinc-950/90 border border-white/15 px-4 py-2.5 rounded-xl">
+              <div class="flex items-center gap-2">
+                <button id="tab-page-458" onclick="switchBookPage(458)" class="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-500 text-black transition-all">
+                  Pag. 458 • La Lettera
+                </button>
+                <button id="tab-page-459" onclick="switchBookPage(459)" class="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white/10 text-zinc-300 hover:bg-white/20 transition-all">
+                  Pag. 459 • La Tomba
+                </button>
+              </div>
+              <span id="page-progress-badge" class="text-[11px] font-semibold text-amber-400 font-mono">
+                Parola 1 / 392 • 00:00.0
+              </span>
+            </div>
+
+            <!-- Scheda del foglio fisico -->
+            <div id="book-sheet-container" class="book-sheet rounded-r-2xl rounded-l-md p-6 sm:p-8 flex-1 flex flex-col justify-between relative min-h-[550px] select-none">
+              <div>
+                <div class="flex justify-between items-center border-b border-stone-800/25 pb-2 mb-5 text-[11px] tracking-[0.2em] uppercase text-stone-700 font-book">
+                  <span>STEPHEN KING</span>
+                  <span id="sheet-running-head">LA ZONA MORTA • LA LETTERA</span>
+                  <span id="sheet-page-number" class="font-bold">458</span>
+                </div>
+
+                <!-- PAGINA 458: 4 PARAGRAFI CON 34 MICRO-SEGMENTI ANCORATI A 00:00 - 02:02.5 -->
+                <div id="page-458-content" class="font-book text-[15.5px] sm:text-[16.5px] leading-[1.66] text-justify text-stone-900">
+                  <p id="para-0" class="book-paragraph no-indent active-paragraph">
+                    <em>
+                      <span id="seg-0" class="sync-seg">Cara Sarah,</span>
+                      <span id="seg-1" class="sync-seg">questa è una lettera difficile da scrivere,</span>
+                      <span id="seg-2" class="sync-seg">perciò cercherò di essere breve.</span>
+                      <span id="seg-3" class="sync-seg">Quando il postino te la consegnerà a Bangor,</span>
+                      <span id="seg-4" class="sync-seg">con il timbro postale di Phoenix,</span>
+                      <span id="seg-5" class="sync-seg">tutto sarà già compiuto.</span>
+                      <span id="seg-6" class="sync-seg">Non posso più continuare a nascondermi:</span>
+                      <span id="seg-7" class="sync-seg">è questo che ho fatto finora,</span>
+                      <span id="seg-8" class="sync-seg">fuggire e rintanarmi nell'ombra</span>
+                      <span id="seg-9" class="sync-seg">mentre il male che ho toccato in quella sera d'estate continuava a crescere.</span>
+                    </em>
+                  </p>
+                  <p id="para-1" class="book-paragraph">
+                    <em>
+                      <span id="seg-10" class="sync-seg">Tu lo sai che è molto tempo che ho capito tutto.</span>
+                      <span id="seg-11" class="sync-seg">Per anni, dopo il risveglio in quel letto d'ospedale,</span>
+                      <span id="seg-12" class="sync-seg">ho pensato che questo potere della mia mente —</span>
+                      <span id="seg-13" class="sync-seg">questa «zona morta» scavata dal ghiaccio e dal coma —</span>
+                      <span id="seg-14" class="sync-seg">fosse soltanto una maledizione crudele che mi aveva strappato a te,</span>
+                      <span id="seg-15" class="sync-seg">alla nostra casa, al figlio che avremmo potuto avere.</span>
+                      <span id="seg-16" class="sync-seg">Ma ora, alla fine della strada,</span>
+                      <span id="seg-17" class="sync-seg">lo vedo per quello che è veramente: un dono.</span>
+                      <span id="seg-18" class="sync-seg">Una responsabilità a cui non posso sottrarmi.</span>
+                    </em>
+                  </p>
+                  <p id="para-2" class="book-paragraph">
+                    <em>
+                      <span id="seg-19" class="sync-seg">Mio padre mi diceva sempre:</span>
+                      <span id="seg-20" class="sync-seg">«Facciamo tutti quello che possiamo, Johnny, e deve essere abbastanza buono;</span>
+                      <span id="seg-21" class="sync-seg">e se non è abbastanza buono, deve andar bene lo stesso».</span>
+                      <span id="seg-22" class="sync-seg">Tu non comprenderai mai fino in fondo il perché di ciò che sto per fare a Jackson, Sarah,</span>
+                      <span id="seg-23" class="sync-seg">e il mondo là fuori mi giudicherà un folle.</span>
+                      <span id="seg-24" class="sync-seg">Però io ho visto i cieli bruciare dietro gli occhi di Greg Stillson,</span>
+                      <span id="seg-25" class="sync-seg">e so quello che faccio,</span>
+                      <span id="seg-26" class="sync-seg">e so di avere ragione.</span>
+                    </em>
+                  </p>
+                  <p id="para-3" class="book-paragraph">
+                    <em>
+                      <span id="seg-27" class="sync-seg">Non piangere per me quando leggerai queste righe.</span>
+                      <span id="seg-28" class="sync-seg">Sei felice con Walt, hai un bambino meraviglioso,</span>
+                      <span id="seg-29" class="sync-seg">e sapere che entrambi vivrete in un mondo che avrà ancora un domani</span>
+                      <span id="seg-30" class="sync-seg">mi basta per andarmene in pace.</span>
+                      <span id="seg-31" class="sync-seg">Ricordati soltanto che non c'è stata nessun'altra per me, tranne te.</span>
+                      <span id="seg-32" class="sync-seg">Evidentemente il nostro destino su quella ruota era diverso.</span>
+                      <span id="seg-33" class="sync-seg">Io ti amerò sempre, Sarah.</span>
+                      <span id="seg-34" class="sync-seg">Tuo, Johnny.</span>
+                    </em>
+                  </p>
+                </div>
+
+                <!-- PAGINA 459: 4 PARAGRAFI CON 23 MICRO-SEGMENTI ANCORATI A 02:02.5 - 03:41.0 -->
+                <div id="page-459-content" class="font-book text-[15.5px] sm:text-[16.5px] leading-[1.66] text-justify text-stone-900 hidden">
+                  <p id="para-4" class="book-paragraph no-indent">
+                    <em>
+                      <span id="seg-35" class="sync-seg">Era una limpida mattina di fine aprile</span>
+                      <span id="seg-36" class="sync-seg">quando Sarah salì da sola lungo il pendio erboso del piccolo cimitero di Pownal.</span>
+                      <span id="seg-37" class="sync-seg">La neve del lungo inverno del Maine si era finalmente sciolta,</span>
+                      <span id="seg-38" class="sync-seg">lasciando il posto a un vento tiepido che profumava di pino e di terra bagnata.</span>
+                      <span id="seg-39" class="sync-seg">Si inginocchiò davanti alla lapide semplice di granito grigio:</span>
+                      <span id="seg-40" class="sync-seg">JOHN SMITH, 1947–1979.</span>
+                    </em>
+                  </p>
+                  <p id="para-5" class="book-paragraph">
+                    <em>
+                      <span id="seg-41" class="sync-seg">Tirò fuori dalla borsetta la busta ormai consumata arrivata dall'Arizona mesi prima.</span>
+                      <span id="seg-42" class="sync-seg">La fotografia scattata a Jackson aveva fatto il giro del mondo:</span>
+                      <span id="seg-43" class="sync-seg">Greg Stillson che si faceva scudo con un bambino terrorizzato per pararsi dai colpi di fucile.</span>
+                      <span id="seg-44" class="sync-seg">L'uomo politico era finito per sempre, distrutto dalla sua stessa vigliaccheria.</span>
+                      <span id="seg-45" class="sync-seg">Solo Sarah sapeva quale orrore invisibile Johnny avesse fermato pagando con la propria vita.</span>
+                    </em>
+                  </p>
+                  <p id="para-6" class="book-paragraph">
+                    <em>
+                      <span id="seg-46" class="sync-seg">Appoggiò il palmo della mano nuda sull'erba nuova che cresceva sopra di lui e chiuse gli occhi.</span>
+                      <span id="seg-47" class="sync-seg">«Sono venuta a dirti addio, Johnny» sussurrò nel silenzio della collina.</span>
+                      <span id="seg-48" class="sync-seg">Per un istante, nitido come un raggio di sole attraverso i rami,</span>
+                      <span id="seg-49" class="sync-seg">le parve di vederlo lì accanto a lei:</span>
+                      <span id="seg-50" class="sync-seg">non scavato dalla malattia e dalla sofferenza, ma giovane,</span>
+                      <span id="seg-51" class="sync-seg">col sorriso luminoso della sera alla fiera.</span>
+                    </em>
+                  </p>
+                  <p id="para-7" class="book-paragraph">
+                    <em>
+                      <span id="seg-52" class="sync-seg">Una brezza leggera le sfiorò i capelli e le dita, calda come un'ultima carezza.</span>
+                      <span id="seg-53" class="sync-seg">Nella sua mente risuonò una voce dolce e profonda:</span>
+                      <span id="seg-54" class="sync-seg">«Va tutto bene, Sarah. È tutto finito. Ora va' a casa e vivi.»</span>
+                      <span id="seg-55" class="sync-seg">Sarah si rialzò con il volto rigato di lacrime, ma il peso gelido nel petto era scomparso.</span>
+                      <span id="seg-56" class="sync-seg">Sorrise tra le lacrime, voltò le spalle alla collina e tornò verso la luce.</span>
+                    </em>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Footer della pagina -->
+              <div class="border-t border-stone-800/20 pt-3 mt-4 flex items-center justify-between text-xs font-sans text-stone-700">
+                <span class="italic font-book">Clicca su qualsiasi parola per saltare a quel punto</span>
+                <span id="sheet-footer-num" class="font-book text-sm font-bold">— 458 —</span>
+                <span class="text-[11px] font-semibold text-red-800">Sincronia Millimetrica (03:41)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DESTRA: SALA CINEMA 35MM HD -->
+          <div class="lg:col-span-7 flex flex-col gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-zinc-950/90 border border-white/15 px-4 py-2.5 rounded-xl">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                <span id="cinema-scene-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  458.1 • LA LETTERA NELLA NOTTE DI PHOENIX
+                </span>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-md border border-white/10 text-[11px]">
+                  <span class="text-zinc-400">Offset:</span>
+                  <button onclick="adjustSyncOffset(-0.25)" class="px-1.5 hover:text-amber-400 font-bold" title="Anticipa parole di 0.25s">−</button>
+                  <span id="sync-offset-label" class="font-mono text-amber-300 min-w-[38px] text-center">0.00s</span>
+                  <button onclick="adjustSyncOffset(0.25)" class="px-1.5 hover:text-amber-400 font-bold" title="Ritarda parole di 0.25s">+</button>
+                </div>
+
+                <span id="audio-timer-display" class="font-mono text-xs text-zinc-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                  00:00.0 / 03:41.0
+                </span>
+                <button id="btn-reset-video" onclick="disableUserVideo()" class="hidden px-2.5 py-1 rounded-lg bg-red-600/20 border border-red-500/40 text-red-300 text-[11px] font-semibold">
+                  ✕ Rimuovi MP4
+                </button>
+              </div>
+            </div>
+
+            <!-- Schermo Cinematografico 1280x720 -->
+            <div class="relative flex-1 min-h-[410px] sm:min-h-[470px] rounded-2xl overflow-hidden bg-black border border-white/20 shadow-[0_25px_70px_rgba(0,0,0,0.95)] flex items-center justify-center">
+              <canvas id="cinema-35mm-canvas" width="1280" height="720" class="w-full h-full object-cover block"></canvas>
+              <video id="user-custom-video" class="absolute inset-0 w-full h-full object-cover hidden z-10 bg-black" playsinline></video>
+
+              <!-- Pillola Stato Voce -->
+              <div id="audiobook-live-pill" class="absolute top-5 left-5 z-20 hidden items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/85 border border-red-500/60 backdrop-blur-md">
+                <div class="flex items-end gap-0.5 h-3.5">
+                  <div class="eq-bar" style="animation-delay:0s"></div>
+                  <div class="eq-bar" style="animation-delay:0.15s"></div>
+                  <div class="eq-bar" style="animation-delay:0.3s"></div>
+                </div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                  AUDIO SINCRONIZZATO
+                </span>
+              </div>
+
+              <!-- Sottotitoli Karaoke -->
+              <div class="absolute bottom-5 left-3 right-3 sm:left-6 sm:right-6 z-20 text-center pointer-events-none">
+                <div id="cinema-live-subtitle" class="inline-block max-w-3xl bg-black/90 border border-amber-500/50 px-5 py-3 rounded-xl font-book italic text-base sm:text-lg text-zinc-200 leading-relaxed shadow-[0_10px_30px_rgba(0,0,0,0.95)] transition-all duration-200">
+                  «Cara Sarah, questa è una lettera difficile da scrivere, perciò cercherò di essere breve.»
+                </div>
+              </div>
+            </div>
+
+            <!-- Slider Timeline di Navigazione su 221.0s -->
+            <div class="bg-zinc-950/90 border border-white/15 px-4 py-3 rounded-xl flex flex-col gap-2">
+              <input id="sync-timeline-slider" type="range" min="0" max="2210" value="0" oninput="handleTimelineScrub(this.value)" class="w-full accent-red-600 cursor-pointer h-1.5 bg-white/10 rounded-lg" />
+              <div class="flex justify-between text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
+                <span>Pag. 458 • La Lettera (00:00)</span>
+                <span id="sync-current-chapter-label" class="text-amber-400">Premi «Leggi» per iniziare</span>
+                <span>Pag. 459 • Addio a Pownal (03:41)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODALE VISIONE PSICHICA -->
+  <div id="vision-experience-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+    <div class="relative max-w-4xl w-full rounded-3xl overflow-hidden bg-zinc-950 border-2 border-red-600 shadow-[0_0_90px_rgba(227,27,35,0.65)] flex flex-col">
+      <div class="relative h-48 sm:h-56 w-full bg-black overflow-hidden border-b border-red-500/40">
+        <canvas id="vision-visualizer-canvas" width="900" height="260" class="w-full h-full object-cover"></canvas>
+        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-black/60"></div>
+
+        <div class="absolute top-4 left-5 right-5 flex items-center justify-between">
+          <span class="px-3.5 py-1 rounded-full bg-red-600 text-white text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-lg">
+            ⚡ LA ZONA MORTA • VISIONE PSICHICA
+          </span>
+          <button onclick="closePsychicVisionExperience()" class="w-9 h-9 rounded-full bg-black/80 hover:bg-red-600 border border-white/25 text-white font-bold flex items-center justify-center transition-all">
+            ✕
+          </button>
+        </div>
+
+        <div class="absolute bottom-3 left-6 right-6 flex items-end justify-between">
+          <div>
+            <span id="vision-modal-act-tag" class="text-xs font-bold uppercase tracking-widest text-amber-400">VISIONE I • 1970</span>
+            <h3 id="vision-modal-title" class="font-zona text-2xl sm:text-3xl text-white psychic-glow">
+              La Notte dello Schianto e il Numero 19
+            </h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 sm:p-8 space-y-5 max-h-[64vh] overflow-y-auto">
+        <div id="vision-modal-quote" class="font-book italic text-xl sm:text-2xl leading-relaxed text-white bg-red-950/25 border-l-4 border-amber-500 p-6 rounded-r-2xl shadow-inner select-text"></div>
+
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div class="text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">
+            IL SIGNIFICATO NELL'OPERA
+          </div>
+          <p id="vision-modal-explain" class="text-sm sm:text-base text-zinc-300 leading-relaxed"></p>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button onclick="closePsychicVisionExperience()" class="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider transition-all">
+            Chiudi Visione
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, radii) {
+        if (!radii) radii = 0;
+        const r = typeof radii === 'number' ? { tl: radii, tr: radii, br: radii, bl: radii } : {
+          tl: radii[0] || 0,
+          tr: radii[1] || radii[0] || 0,
+          br: radii[2] || radii[0] || 0,
+          bl: radii[3] || radii[1] || radii[0] || 0
+        };
+        this.beginPath();
+        this.moveTo(x + r.tl, y);
+        this.lineTo(x + w - r.tr, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+        this.lineTo(x + w, y + h - r.br);
+        this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+        this.lineTo(x + r.bl, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+        this.lineTo(x, y + r.tl);
+        this.quadraticCurveTo(x, y, x + r.tl, y);
+        this.closePath();
+        return this;
+      };
+    }
+
+    const EMBEDDED_VOICE_BASE64 = "";
+
+    /********************************************************************
+     * 1. TEXTURE PROCEDURALI AD ALTA RISOLUZIONE
+     ********************************************************************/
+    function createFrontCoverTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 1536;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.save();
+      ctx.fillStyle = '#e51920';
+      ctx.textAlign = 'center';
+      ctx.save();
+      ctx.font = '900 136px "Permanent Marker", Impact, sans-serif';
+      ctx.transform(1.04, -0.025, -0.04, 1, 0, 0);
+      ctx.fillText('STEPHEN', 495, 205);
+      ctx.restore();
+
+      ctx.save();
+      ctx.font = '900 295px "Permanent Marker", Impact, sans-serif';
+      ctx.transform(1.02, -0.01, -0.03, 1.08, 0, 0);
+      ctx.fillText('KING', 502, 465);
+      ctx.restore();
+      ctx.restore();
+
+      const eyeCx = 512;
+      const eyeCy = 840;
+
+      for (let i = 0; i < 1400; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const rx = 345 + (Math.random() - 0.5) * 65;
+        const ry = 195 + (Math.random() - 0.5) * 48;
+        const px = eyeCx + Math.cos(ang) * rx;
+        const py = eyeCy + Math.sin(ang) * ry * (1 - Math.abs(Math.cos(ang)) * 0.36);
+        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.65})`;
+        ctx.fillRect(px, py, 2.5, 2.5);
+      }
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(135, eyeCy + 20);
+      ctx.quadraticCurveTo(eyeCx, eyeCy - 260, 890, eyeCy + 10);
+      ctx.quadraticCurveTo(eyeCx, eyeCy + 250, 135, eyeCy + 20);
+      ctx.closePath();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(180,180,180,0.6)';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(eyeCx, eyeCy, 152, 0, Math.PI * 2);
+      ctx.fillStyle = '#040404';
+      ctx.fill();
+
+      for (let i = 0; i < 1800; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 135 + (Math.random() - 0.35) * 58;
+        ctx.fillStyle = Math.random() > 0.25 ? '#000000' : '#3a3f45';
+        const sz = 2 + Math.random() * 4;
+        ctx.fillRect(eyeCx + Math.cos(a) * r, eyeCy + Math.sin(a) * r, sz, sz);
+      }
+
+      const skGrad = ctx.createRadialGradient(eyeCx - 12, eyeCy - 28, 12, eyeCx, eyeCy, 112);
+      skGrad.addColorStop(0, '#9fa8b0');
+      skGrad.addColorStop(0.65, '#788188');
+      skGrad.addColorStop(1, '#1d2024');
+
+      ctx.fillStyle = skGrad;
+      ctx.beginPath();
+      ctx.arc(eyeCx, eyeCy - 18, 86, Math.PI * 0.84, Math.PI * 2.16);
+      ctx.lineTo(eyeCx + 50, eyeCy + 76);
+      ctx.lineTo(eyeCx - 50, eyeCy + 76);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#030303';
+      ctx.beginPath();
+      ctx.ellipse(eyeCx - 29, eyeCy - 4, 21, 23, -0.1, 0, Math.PI * 2);
+      ctx.ellipse(eyeCx + 29, eyeCy - 4, 21, 23, 0.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(eyeCx, eyeCy + 10);
+      ctx.lineTo(eyeCx - 13, eyeCy + 39);
+      ctx.lineTo(eyeCx + 13, eyeCy + 39);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#050505';
+      ctx.lineWidth = 5.5;
+      for (let x = -35; x <= 35; x += 14) {
+        ctx.beginPath();
+        ctx.moveTo(eyeCx + x, eyeCy + 52);
+        ctx.lineTo(eyeCx + x, eyeCy + 80);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(eyeCx + 32, eyeCy - 12);
+      ctx.lineTo(eyeCx + 158, eyeCy - 138);
+      ctx.lineTo(eyeCx + 188, eyeCy - 72);
+      ctx.closePath();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.font = '700 88px "Rubik Dirt", Impact, sans-serif';
+      ctx.fillText('LA ZONA MORTA', 512, 1280);
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(88, 1442, 36, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 50px "Inter", sans-serif';
+      ctx.fillText('t', 88, 1459);
+
+      ctx.textAlign = 'right';
+      ctx.font = '500 42px "EB Garamond", Georgia, serif';
+      ctx.fillText('Sperling & Kupfer', 955, 1458);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = 8;
+      return tex;
+    }
+
+    function createBackCoverTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 1536;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#050506';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = '#f2f2f2';
+      ctx.font = '400 31px "Inter", sans-serif';
+      const synopsisLines = [
+        "Al risveglio da un coma durato quattro anni, Johnny scopre",
+        "di possedere un dono meraviglioso e nello stesso tempo in-",
+        "quietante: riesce a vedere il passato e il futuro delle persone",
+        "attraverso un semplice tocco, un contatto. Così, in un gior-",
+        "no d'estate, Johnny stringe la mano di un ambizioso uomo",
+        "politico e viene a conoscenza di un complotto diabolico. Un",
+        "complotto che solo lui può fermare... Una storia ad alta ten-",
+        "sione come solo Stephen King sa raccontare."
+      ];
+      synopsisLines.forEach((line, idx) => {
+        ctx.fillText(line, 104, 300 + idx * 48);
+      });
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, 668);
+      ctx.quadraticCurveTo(78, 634, 150, 702);
+      ctx.quadraticCurveTo(78, 770, 0, 736);
+      ctx.closePath();
+      ctx.fillStyle = '#f5a623';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(70, 702, 34, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#000000';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(70, 702, 11, 0, Math.PI * 2);
+      ctx.fillStyle = '#000000';
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 39px "Inter", sans-serif';
+      ctx.fillText('«Un romanzo dal ritmo perfetto.»', 206, 688);
+      ctx.font = 'italic 700 38px "Inter", sans-serif';
+      ctx.fillText('Los Angeles Times', 595, 745);
+
+      ctx.font = '400 26px "Inter", sans-serif';
+      const bioLines = [
+        "Stephen King, acclamato genio della letteratura internazionale, vive e",
+        "lavora nel Maine con la moglie Tabitha. Le sue storie da incubo sono",
+        "clamorosi bestseller che hanno venduto 400 milioni di copie in tutto",
+        "il mondo e hanno ispirato registi famosi come Brian De Palma, Stanley",
+        "Kubrick, Rob Reiner e Frank Darabont.",
+        "www.stephenking.com"
+      ];
+      bioLines.forEach((line, idx) => {
+        ctx.fillText(line, 104, 845 + idx * 38);
+      });
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(95, 1175);
+      ctx.quadraticCurveTo(512, 1235, 930, 1175);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 32px "Inter", sans-serif';
+      ctx.fillText('www.pickwicklibri.it', 104, 1270);
+
+      ctx.font = '500 40px "EB Garamond", Georgia, serif';
+      ctx.fillText('Sperling & Kupfer', 104, 1328);
+
+      ctx.font = '700 15px "Inter", sans-serif';
+      ctx.fillText('ART DIRECTOR: FRANCESCO MARANGON', 104, 1368);
+      ctx.fillText('GRAPHIC DESIGNER: CARLO MASCHERONI', 104, 1388);
+      ctx.fillText('COPERTINA: M. FUNK/THE IMAGE BANK', 104, 1408);
+
+      ctx.font = '700 38px "Inter", sans-serif';
+      ctx.fillText('€ 10,90', 104, 1475);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(620, 1300, 295, 178);
+      ctx.fillStyle = '#000000';
+      ctx.font = '600 18px monospace';
+      ctx.fillText('ISBN 978-88-6836-127-3', 645, 1330);
+      for (let x = 645; x < 890; x += 6) {
+        ctx.fillRect(x, 1342, (x % 18 === 0) ? 4 : 2, 105);
+      }
+      ctx.font = '600 20px monospace';
+      ctx.fillText('9 788868 361273', 645, 1468);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = 8;
+      return tex;
+    }
+
+    function createSpineTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 1536;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#040405';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.save();
+      ctx.translate(128, 768);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#e51920';
+      ctx.font = '900 68px "Permanent Marker", sans-serif';
+      ctx.fillText('STEPHEN KING', -260, 22);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 62px "Rubik Dirt", sans-serif';
+      ctx.fillText('LA ZONA MORTA', 260, 22);
+      ctx.restore();
+
+      return new THREE.CanvasTexture(c);
+    }
+
+    function createInsidePageTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 1536;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f3ead8';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = '#181412';
+      ctx.textAlign = 'center';
+      ctx.font = '700 44px "EB Garamond", serif';
+      ctx.fillText('STEPHEN KING', 512, 310);
+
+      ctx.fillStyle = '#e31b23';
+      ctx.font = '700 72px "EB Garamond", serif';
+      ctx.fillText('LA ZONA MORTA', 512, 410);
+
+      ctx.fillStyle = '#2c2623';
+      ctx.font = 'italic 36px "EB Garamond", serif';
+      const lines = [
+        "«Facciamo tutti quello che possiamo, Johnny,",
+        "e deve essere abbastanza buono;",
+        "e se non è abbastanza buono,",
+        "deve andar bene lo stesso.»",
+        "",
+        "— Herb Smith a suo figlio Johnny",
+        "",
+        "Traduzione di Tullio Dobner",
+        "Sperling & Kupfer • Pickwick"
+      ];
+      lines.forEach((l, i) => ctx.fillText(l, 512, 640 + i * 54));
+      return new THREE.CanvasTexture(c);
+    }
+
+    /********************************************************************
+     * 2. MONDO 3D CONTINUO THREE.JS
+     ********************************************************************/
+    const stageEl = document.getElementById('webgl-stage');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x020204, 0.042);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0.1, 7.1);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x020204, 1);
+    stageEl.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.25);
+    dirLight.position.set(4, 6, 6);
+    scene.add(dirLight);
+
+    const crimsonLight = new THREE.PointLight(0xe31b23, 2.8, 20);
+    crimsonLight.position.set(-4.5, 2.2, 3.5);
+    scene.add(crimsonLight);
+
+    const amberLight = new THREE.PointLight(0xf5a623, 2.1, 20);
+    amberLight.position.set(4.5, -2.2, 3.0);
+    scene.add(amberLight);
+
+    const bookGroup = new THREE.Group();
+    scene.add(bookGroup);
+
+    const bookW = 2.52;
+    const bookH = 3.78;
+    const bookD = 0.44;
+
+    const bodyMats = [
+      new THREE.MeshStandardMaterial({ color: 0xefe5d0, roughness: 0.75 }),
+      new THREE.MeshStandardMaterial({ map: createSpineTexture(), roughness: 0.38 }),
+      new THREE.MeshStandardMaterial({ color: 0xe6dac3, roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ color: 0xe6dac3, roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ map: createInsidePageTexture(), roughness: 0.65 }),
+      new THREE.MeshStandardMaterial({ map: createBackCoverTexture(), roughness: 0.35 })
+    ];
+    const bookBody = new THREE.Mesh(new THREE.BoxGeometry(bookW, bookH, bookD), bodyMats);
+    bookGroup.add(bookBody);
+
+    const frontPivot = new THREE.Group();
+    frontPivot.position.set(-bookW / 2, 0, bookD / 2 + 0.012);
+    bookGroup.add(frontPivot);
+
+    const coverGeo = new THREE.BoxGeometry(bookW, bookH, 0.026);
+    coverGeo.translate(bookW / 2, 0, 0);
+    const frontTex = createFrontCoverTexture();
+    const coverMats = [
+      new THREE.MeshStandardMaterial({ color: 0x111111 }),
+      new THREE.MeshStandardMaterial({ color: 0x111111 }),
+      new THREE.MeshStandardMaterial({ color: 0x111111 }),
+      new THREE.MeshStandardMaterial({ color: 0x111111 }),
+      new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.28, metalness: 0.08 }),
+      new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.7 })
+    ];
+    const frontCoverMesh = new THREE.Mesh(coverGeo, coverMats);
+    frontPivot.add(frontCoverMesh);
+
+    const ringsGroup = new THREE.Group();
+    scene.add(ringsGroup);
+
+    const ringRed = new THREE.Mesh(
+      new THREE.TorusGeometry(3.25, 0.014, 16, 100),
+      new THREE.MeshBasicMaterial({ color: 0xe31b23, wireframe: true, transparent: true, opacity: 0.22 })
+    );
+    ringRed.rotation.x = Math.PI / 2.5;
+    ringsGroup.add(ringRed);
+
+    const ringGold = new THREE.Mesh(
+      new THREE.TorusGeometry(3.95, 0.012, 16, 100),
+      new THREE.MeshBasicMaterial({ color: 0xf5a623, wireframe: true, transparent: true, opacity: 0.16 })
+    );
+    ringGold.rotation.y = Math.PI / 3.1;
+    ringsGroup.add(ringGold);
+
+    const neuralGroup = new THREE.Group();
+    neuralGroup.position.set(2.8, 0, -2.5);
+    scene.add(neuralGroup);
+
+    const neuralMat = new THREE.MeshBasicMaterial({ color: 0xe31b23, wireframe: true, transparent: true, opacity: 0.22 });
+    const neuralMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9, 2), neuralMat);
+    neuralGroup.add(neuralMesh);
+
+    const snowCount = 650;
+    const snowGeo = new THREE.BufferGeometry();
+    const snowPos = new Float32Array(snowCount * 3);
+    for (let i = 0; i < snowCount * 3; i += 3) {
+      snowPos[i] = (Math.random() - 0.5) * 24;
+      snowPos[i + 1] = (Math.random() - 0.5) * 16;
+      snowPos[i + 2] = (Math.random() - 0.5) * 15;
+    }
+    snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+    const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.045, transparent: true, opacity: 0.65 });
+    const snowParticles = new THREE.Points(snowGeo, snowMat);
+    scene.add(snowParticles);
+
+    let isDraggingBook = false;
+    let prevPointer = { x: 0, y: 0 };
+    let userRotOffsetY = -0.22;
+    let userRotOffsetX = 0.06;
+    let targetBookPos = new THREE.Vector3(0, 0.08, 0);
+    let targetBookScale = 1;
+    let targetCamZ = 7.0;
+    let isBookOpen = false;
+    let targetCoverOpenAngle = 0;
+    let isBackSide = false;
+    let normalizedScroll = 0;
+
+    window.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.interactive-zone, button, a, input, select, textarea, label')) return;
+      isDraggingBook = true;
+      prevPointer = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDraggingBook) return;
+      const dx = e.clientX - prevPointer.x;
+      const dy = e.clientY - prevPointer.y;
+      userRotOffsetY += dx * 0.0085;
+      userRotOffsetX = Math.max(-0.65, Math.min(0.65, userRotOffsetX + dy * 0.006));
+      prevPointer = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener('pointerup', () => { isDraggingBook = false; });
+    window.addEventListener('pointercancel', () => { isDraggingBook = false; });
+
+    function toggleBookCoverOpen() {
+      isBookOpen = !isBookOpen;
+      const lbl = document.getElementById('btn-open-book-label');
+      if (isBookOpen) {
+        isBackSide = false;
+        userRotOffsetY = 0.18;
+        targetCoverOpenAngle = -Math.PI * 0.74;
+        if (lbl) lbl.textContent = 'Chiudi Copertina 3D';
+      } else {
+        targetCoverOpenAngle = 0;
+        if (lbl) lbl.textContent = 'Apri Copertina 3D';
+      }
+      playPsychicStinger(0.4);
+    }
+
+    function flipBookFrontBack() {
+      isBookOpen = false;
+      targetCoverOpenAngle = 0;
+      document.getElementById('btn-open-book-label').textContent = 'Apri Copertina 3D';
+      isBackSide = !isBackSide;
+      userRotOffsetY = isBackSide ? Math.PI - 0.18 : -0.22;
+      userRotOffsetX = 0.04;
+      document.getElementById('btn-flip-book-label').textContent = isBackSide
+        ? 'Torna al Fronte'
+        : 'Guarda il Retro';
+      playPsychicStinger(0.35);
+    }
+
+    function triggerHeroPsychicPulse() {
+      const shock = document.getElementById('psychic-shockwave');
+      shock.style.opacity = '0.9';
+      setTimeout(() => { shock.style.opacity = '0'; }, 380);
+      userRotOffsetY += Math.PI * 2;
+      playPsychicStinger(0.85);
+    }
+
+    function updateScrollChoreography() {
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      normalizedScroll = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+
+      const bar = document.getElementById('scroll-progress-bar');
+      if (bar) bar.style.width = (normalizedScroll * 100).toFixed(1) + '%';
+
+      if (normalizedScroll < 0.22) {
+        targetBookPos.set(0, 0.08, 0);
+        targetBookScale = 1.0;
+      } else if (normalizedScroll < 0.52) {
+        targetBookPos.set(2.9, 0.2, -2.6);
+        targetBookScale = 0.85;
+      } else if (normalizedScroll < 0.78) {
+        targetBookPos.set(-3.4, 0.1, -2.2);
+        targetBookScale = 0.82;
+      } else {
+        targetBookPos.set(0, 0.3, -4.6);
+        targetBookScale = 0.75;
+      }
+    }
+
+    window.addEventListener('scroll', updateScrollChoreography, { passive: true });
+
+    const clock = new THREE.Clock();
+    let isWebGLVisible = true;
+
+    function animateWebGL() {
+      requestAnimationFrame(animateWebGL);
+      if (!isWebGLVisible) return;
+
+      const t = clock.getElapsedTime();
+      bookGroup.position.lerp(targetBookPos, 0.055);
+      bookGroup.position.y += Math.sin(t * 1.5) * 0.0025;
+
+      const s = bookGroup.scale.x + (targetBookScale - bookGroup.scale.x) * 0.06;
+      bookGroup.scale.set(s, s, s);
+
+      const scrollAngleOffset = normalizedScroll * Math.PI * 0.65;
+      const desiredRotY = userRotOffsetY + scrollAngleOffset;
+      bookGroup.rotation.y += (desiredRotY - bookGroup.rotation.y) * 0.065;
+      bookGroup.rotation.x += (userRotOffsetX - bookGroup.rotation.x) * 0.065;
+
+      frontPivot.rotation.y += (targetCoverOpenAngle - frontPivot.rotation.y) * 0.08;
+      camera.position.z += (targetCamZ - camera.position.z) * 0.06;
+
+      ringRed.rotation.z = t * 0.16 + normalizedScroll * 2;
+      ringGold.rotation.x = t * 0.12 - normalizedScroll * 1.5;
+
+      neuralMesh.rotation.y = t * 0.32;
+      neuralMesh.rotation.x = t * 0.18;
+
+      const arr = snowGeo.attributes.position.array;
+      for (let i = 1; i < arr.length; i += 3) {
+        arr[i] -= 0.014;
+        if (arr[i] < -8) arr[i] = 8;
+      }
+      snowGeo.attributes.position.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    }
+    animateWebGL();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function handleCardTilt(e, cardEl) {
+      const rect = cardEl.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const rotY = ((x / rect.width) - 0.5) * 10;
+      const rotX = ((0.5 - (y / rect.height))) * 10;
+      cardEl.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
+    }
+    function resetCardTilt(cardEl) {
+      cardEl.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)';
+    }
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          document.querySelectorAll('.nav-chapter-btn').forEach(btn => {
+            const active = btn.getAttribute('data-nav') === id;
+            btn.className = active
+              ? 'nav-chapter-btn active bg-red-600 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(227,27,35,0.6)]'
+              : 'nav-chapter-btn text-zinc-400 hover:text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all';
+          });
+        }
+      });
+    }, { threshold: 0.25 });
+
+    document.querySelectorAll('.reveal-section, #sec-hero').forEach(sec => sectionObserver.observe(sec));
+
+    function scrollToChapter(secId) {
+      const el = document.getElementById(secId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /********************************************************************
+     * 3. COLONNA SONORA SINFONICA WEB AUDIO API CON DUCKING
+     ********************************************************************/
+    let audioCtx = null;
+    let masterBus = null;
+    let musicBus = null;
+    let reverbSend = null;
+    let voiceAnalyser = null;
+    let voiceMediaSourceConnected = false;
+    let isHauntedMusicPlaying = false;
+    let symphonySchedulerTimer = null;
+    let currentBarIndex = 0;
+
+    function initAudioEngine() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      const limiter = audioCtx.createDynamicsCompressor();
+      limiter.threshold.setValueAtTime(-4, audioCtx.currentTime);
+      limiter.knee.setValueAtTime(8, audioCtx.currentTime);
+      limiter.ratio.setValueAtTime(12, audioCtx.currentTime);
+      limiter.attack.setValueAtTime(0.003, audioCtx.currentTime);
+      limiter.release.setValueAtTime(0.2, audioCtx.currentTime);
+      limiter.connect(audioCtx.destination);
+
+      masterBus = audioCtx.createGain();
+      masterBus.gain.setValueAtTime(0.9, audioCtx.currentTime);
+      masterBus.connect(limiter);
+
+      musicBus = audioCtx.createGain();
+      musicBus.gain.setValueAtTime(0.75, audioCtx.currentTime);
+      musicBus.connect(masterBus);
+
+      reverbSend = audioCtx.createGain();
+      reverbSend.gain.setValueAtTime(0.42, audioCtx.currentTime);
+
+      const delayL = audioCtx.createDelay(2.0);
+      const delayR = audioCtx.createDelay(2.0);
+      delayL.delayTime.setValueAtTime(0.31, audioCtx.currentTime);
+      delayR.delayTime.setValueAtTime(0.47, audioCtx.currentTime);
+
+      const fbL = audioCtx.createGain();
+      const fbR = audioCtx.createGain();
+      fbL.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      fbR.gain.setValueAtTime(0.4, audioCtx.currentTime);
+
+      const dampL = audioCtx.createBiquadFilter();
+      const dampR = audioCtx.createBiquadFilter();
+      dampL.type = 'lowpass';
+      dampR.type = 'lowpass';
+      dampL.frequency.setValueAtTime(1500, audioCtx.currentTime);
+      dampR.frequency.setValueAtTime(1350, audioCtx.currentTime);
+
+      reverbSend.connect(delayL);
+      reverbSend.connect(delayR);
+      delayL.connect(dampL);
+      dampL.connect(fbL);
+      fbL.connect(delayR);
+      delayR.connect(dampR);
+      dampR.connect(fbR);
+      fbR.connect(delayL);
+
+      dampL.connect(musicBus);
+      dampR.connect(musicBus);
+
+      voiceAnalyser = audioCtx.createAnalyser();
+      voiceAnalyser.fftSize = 256;
+      voiceAnalyser.smoothingTimeConstant = 0.78;
+    }
+
+    function mtof(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    function playWarmStringsChord(midiNotes, durationSec) {
+      if (!audioCtx || !musicBus) return;
+      const now = audioCtx.currentTime;
+
+      midiNotes.forEach((midi) => {
+        const freq = mtof(midi);
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const filter = audioCtx.createBiquadFilter();
+        const env = audioCtx.createGain();
+
+        osc1.type = 'sawtooth';
+        osc2.type = 'triangle';
+        osc1.frequency.setValueAtTime(freq * 0.9965, now);
+        osc2.frequency.setValueAtTime(freq * 1.0035, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(280, now);
+        filter.frequency.linearRampToValueAtTime(620, now + durationSec * 0.45);
+        filter.frequency.linearRampToValueAtTime(300, now + durationSec);
+
+        const peak = 0.026 / Math.sqrt(midiNotes.length);
+        env.gain.setValueAtTime(0.0001, now);
+        env.gain.linearRampToValueAtTime(peak, now + 1.1);
+        env.gain.setValueAtTime(peak * 0.85, now + durationSec - 0.8);
+        env.gain.exponentialRampToValueAtTime(0.0001, now + durationSec + 1.3);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(env);
+        env.connect(musicBus);
+        env.connect(reverbSend);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + durationSec + 1.4);
+        osc2.stop(now + durationSec + 1.4);
+      });
+    }
+
+    function playFeltPianoNote(midi, startTimeOffset, durationSec, velocity = 0.65) {
+      if (!audioCtx || !musicBus) return;
+      const start = audioCtx.currentTime + startTimeOffset;
+      const freq = mtof(midi);
+
+      const fund = audioCtx.createOscillator();
+      const harm = audioCtx.createOscillator();
+      fund.type = 'sine';
+      harm.type = 'triangle';
+      fund.frequency.setValueAtTime(freq, start);
+      harm.frequency.setValueAtTime(freq * 2, start);
+
+      const gHarm = audioCtx.createGain();
+      gHarm.gain.setValueAtTime(0.2, start);
+      gHarm.gain.exponentialRampToValueAtTime(0.001, start + durationSec * 0.5);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(500 + velocity * 1100, start);
+      filter.frequency.exponentialRampToValueAtTime(260, start + durationSec);
+
+      const noteEnv = audioCtx.createGain();
+      const peakGain = 0.065 * velocity;
+      noteEnv.gain.setValueAtTime(0.0001, start);
+      noteEnv.gain.linearRampToValueAtTime(peakGain, start + 0.018);
+      noteEnv.gain.exponentialRampToValueAtTime(peakGain * 0.32, start + 0.45);
+      noteEnv.gain.exponentialRampToValueAtTime(0.0001, start + durationSec * 1.3);
+
+      fund.connect(filter);
+      harm.connect(gHarm);
+      gHarm.connect(filter);
+      filter.connect(noteEnv);
+      noteEnv.connect(musicBus);
+      noteEnv.connect(reverbSend);
+
+      fund.start(start);
+      harm.start(start);
+      fund.stop(start + durationSec * 1.35);
+      harm.stop(start + durationSec * 1.35);
+    }
+
+    function playExpressiveCelloNote(midi, startTimeOffset, durationSec, velocity = 0.6) {
+      if (!audioCtx || !musicBus) return;
+      const start = audioCtx.currentTime + startTimeOffset;
+      const freq = mtof(midi);
+
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, start);
+
+      const vibOsc = audioCtx.createOscillator();
+      const vibGain = audioCtx.createGain();
+      vibOsc.frequency.setValueAtTime(5.2, start);
+      vibGain.gain.setValueAtTime(freq * 0.007, start);
+      vibOsc.connect(vibGain);
+      vibGain.connect(osc.frequency);
+
+      const celloFilter = audioCtx.createBiquadFilter();
+      celloFilter.type = 'lowpass';
+      celloFilter.frequency.setValueAtTime(340, start);
+      celloFilter.frequency.linearRampToValueAtTime(750, start + durationSec * 0.45);
+      celloFilter.frequency.linearRampToValueAtTime(400, start + durationSec);
+
+      const env = audioCtx.createGain();
+      const peak = 0.03 * velocity;
+      env.gain.setValueAtTime(0.0001, start);
+      env.gain.linearRampToValueAtTime(peak, start + 0.35);
+      env.gain.setValueAtTime(peak * 0.85, start + Math.max(0.4, durationSec - 0.3));
+      env.gain.exponentialRampToValueAtTime(0.0001, start + durationSec + 0.5);
+
+      osc.connect(celloFilter);
+      celloFilter.connect(env);
+      env.connect(musicBus);
+      env.connect(reverbSend);
+
+      osc.start(start);
+      vibOsc.start(start);
+      osc.stop(start + durationSec + 0.6);
+      vibOsc.stop(start + durationSec + 0.6);
+    }
+
+    const DEAD_ZONE_SYMPHONY_BARS = [
+      { strings: [48, 55, 60, 63, 67], arp: [36, 43, 48, 50, 51, 55], melody: [{ midi: 67, offset: 0.0, dur: 1.8, vel: 0.72 }, { midi: 68, offset: 1.8, dur: 0.9, vel: 0.6 }, { midi: 67, offset: 2.7, dur: 0.9, vel: 0.65 }] },
+      { strings: [44, 51, 56, 60, 63], arp: [44, 51, 56, 60, 62, 63], melody: [{ midi: 63, offset: 0.0, dur: 2.2, vel: 0.70 }, { midi: 62, offset: 2.4, dur: 1.2, vel: 0.58 }] },
+      { strings: [41, 48, 53, 56, 63], arp: [41, 48, 53, 55, 56, 60], melody: [{ midi: 60, offset: 0.0, dur: 1.8, vel: 0.68 }, { midi: 65, offset: 1.8, dur: 0.9, vel: 0.72 }, { midi: 63, offset: 2.7, dur: 0.9, vel: 0.64 }] },
+      { strings: [43, 50, 55, 59, 62], arp: [43, 50, 53, 56, 59, 62], melody: [{ midi: 62, offset: 0.0, dur: 2.6, vel: 0.74 }, { midi: 59, offset: 2.7, dur: 0.9, vel: 0.55 }] },
+      { strings: [48, 55, 60, 63, 70], arp: [36, 43, 50, 51, 55, 60], melody: [{ midi: 72, offset: 0.0, dur: 1.8, vel: 0.78 }, { midi: 70, offset: 1.8, dur: 0.9, vel: 0.68 }, { midi: 68, offset: 2.7, dur: 0.9, vel: 0.65 }] },
+      { strings: [46, 51, 55, 58, 62], arp: [46, 51, 55, 58, 62, 67], melody: [{ midi: 67, offset: 0.0, dur: 2.4, vel: 0.75 }, { midi: 63, offset: 2.4, dur: 1.2, vel: 0.62 }] },
+      { strings: [50, 56, 60, 65],     arp: [38, 44, 50, 53, 56, 60], melody: [{ midi: 65, offset: 0.0, dur: 1.8, vel: 0.72 }, { midi: 63, offset: 1.8, dur: 0.9, vel: 0.64 }, { midi: 60, offset: 2.7, dur: 0.9, vel: 0.60 }] },
+      { strings: [43, 50, 53, 59, 62], arp: [31, 43, 50, 53, 56, 59], melody: [{ midi: 62, offset: 0.0, dur: 1.8, vel: 0.68 }, { midi: 59, offset: 1.8, dur: 1.8, vel: 0.60 }] }
+    ];
+
+    function scheduleSymphonyBar() {
+      if (!isHauntedMusicPlaying || !audioCtx) return;
+
+      const bar = DEAD_ZONE_SYMPHONY_BARS[currentBarIndex % DEAD_ZONE_SYMPHONY_BARS.length];
+      const barDuration = 3.6;
+
+      playWarmStringsChord(bar.strings, barDuration);
+      bar.arp.forEach((midiNote, step) => {
+        const jitter = (Math.random() - 0.5) * 0.02;
+        const offset = Math.max(0, step * 0.6 + jitter);
+        const vel = step === 0 ? 0.72 : (step === 3 ? 0.58 : 0.46);
+        playFeltPianoNote(midiNote, offset, 1.9, vel);
+      });
+
+      bar.melody.forEach(m => {
+        playFeltPianoNote(m.midi + 12, m.offset, m.dur * 1.15, m.vel * 0.85);
+        playExpressiveCelloNote(m.midi - 12, m.offset, m.dur, m.vel * 0.9);
+      });
+
+      currentBarIndex++;
+      symphonySchedulerTimer = setTimeout(scheduleSymphonyBar, barDuration * 1000);
+    }
+
+    function toggleHauntedMusic() {
+      initAudioEngine();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      isHauntedMusicPlaying = !isHauntedMusicPlaying;
+      const btn = document.getElementById('btn-dark-music');
+      const txt = document.getElementById('music-status-text');
+      const eq = document.getElementById('music-eq');
+
+      if (isHauntedMusicPlaying) {
+        btn.classList.add('border-amber-400', 'bg-amber-950/40');
+        txt.textContent = 'Colonna Sonora: ON';
+        eq.classList.remove('hidden');
+        eq.classList.add('flex');
+        scheduleSymphonyBar();
+      } else {
+        btn.classList.remove('border-amber-400', 'bg-amber-950/40');
+        txt.textContent = 'Colonna Sonora: OFF';
+        eq.classList.add('hidden');
+        eq.classList.remove('flex');
+        clearTimeout(symphonySchedulerTimer);
+      }
+    }
+
+    function playPsychicStinger(intensity = 0.5) {
+      initAudioEngine();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      playFeltPianoNote(48, 0, 1.6, 0.7 * intensity);
+      playFeltPianoNote(54, 0.06, 1.6, 0.6 * intensity);
+      playFeltPianoNote(60, 0.12, 1.8, 0.75 * intensity);
+    }
+
+    /********************************************************************
+     * 4. MOTORE SINCRONIA TARATO AL CENTESIMO SU 03:41.0 (221.0 SECONDI)
+     *    57 Ancoraggi Micro-Segmentati per azzerare qualsiasi slittamento
+     ********************************************************************/
+    const DEFAULT_AUDIO_DURATION = 221.0; // 3 minuti e 41 secondi esatti
+
+    const SYNC_SEGMENTS = [
+      // PAGINA 458 — PARAGRAFO 0 (00:00.0 - 00:27.2)
+      { id: 0,  para: 0, page: 458, tStart: 0.00,  tEnd: 1.50,  text: "Cara Sarah," },
+      { id: 1,  para: 0, page: 458, tStart: 1.50,  tEnd: 4.20,  text: "questa è una lettera difficile da scrivere," },
+      { id: 2,  para: 0, page: 458, tStart: 4.20,  tEnd: 6.60,  text: "perciò cercherò di essere breve." },
+      { id: 3,  para: 0, page: 458, tStart: 6.60,  tEnd: 9.80,  text: "Quando il postino te la consegnerà a Bangor," },
+      { id: 4,  para: 0, page: 458, tStart: 9.80,  tEnd: 12.20, text: "con il timbro postale di Phoenix," },
+      { id: 5,  para: 0, page: 458, tStart: 12.20, tEnd: 14.50, text: "tutto sarà già compiuto." },
+      { id: 6,  para: 0, page: 458, tStart: 14.50, tEnd: 17.50, text: "Non posso più continuare a nascondermi:" },
+      { id: 7,  para: 0, page: 458, tStart: 17.50, tEnd: 19.50, text: "è questo che ho fatto finora," },
+      { id: 8,  para: 0, page: 458, tStart: 19.50, tEnd: 21.80, text: "fuggire e rintanarmi nell'ombra" },
+      { id: 9,  para: 0, page: 458, tStart: 21.80, tEnd: 27.20, text: "mentre il male che ho toccato in quella sera d'estate continuava a crescere." },
+
+      // PAGINA 458 — PARAGRAFO 1 (00:27.2 - 01:02.8)
+      { id: 10, para: 1, page: 458, tStart: 27.20, tEnd: 30.50, text: "Tu lo sai che è molto tempo che ho capito tutto." },
+      { id: 11, para: 1, page: 458, tStart: 30.50, tEnd: 34.50, text: "Per anni, dopo il risveglio in quel letto d'ospedale," },
+      { id: 12, para: 1, page: 458, tStart: 34.50, tEnd: 38.00, text: "ho pensato che questo potere della mia mente —" },
+      { id: 13, para: 1, page: 458, tStart: 38.00, tEnd: 42.00, text: "questa «zona morta» scavata dal ghiaccio e dal coma —" },
+      { id: 14, para: 1, page: 458, tStart: 42.00, tEnd: 47.50, text: "fosse soltanto una maledizione crudele che mi aveva strappato a te," },
+      { id: 15, para: 1, page: 458, tStart: 47.50, tEnd: 52.00, text: "alla nostra casa, al figlio che avremmo potuto avere." },
+      { id: 16, para: 1, page: 458, tStart: 52.00, tEnd: 54.80, text: "Ma ora, alla fine della strada," },
+      { id: 17, para: 1, page: 458, tStart: 54.80, tEnd: 59.00, text: "lo vedo per quello che è veramente: un dono." },
+      { id: 18, para: 1, page: 458, tStart: 59.00, tEnd: 62.80, text: "Una responsabilità a cui non posso sottrarmi." },
+
+      // PAGINA 458 — PARAGRAFO 2 (01:02.8 - 01:35.5)
+      { id: 19, para: 2, page: 458, tStart: 62.80, tEnd: 65.50, text: "Mio padre mi diceva sempre:" },
+      { id: 20, para: 2, page: 458, tStart: 65.50, tEnd: 71.00, text: "«Facciamo tutti quello che possiamo, Johnny, e deve essere abbastanza buono;" },
+      { id: 21, para: 2, page: 458, tStart: 71.00, tEnd: 75.80, text: "e se non è abbastanza buono, deve andar bene lo stesso»." },
+      { id: 22, para: 2, page: 458, tStart: 75.80, tEnd: 82.00, text: "Tu non comprenderai mai fino in fondo il perché di ciò che sto per fare a Jackson, Sarah," },
+      { id: 23, para: 2, page: 458, tStart: 82.00, tEnd: 85.50, text: "e il mondo là fuori mi giudicherà un folle." },
+      { id: 24, para: 2, page: 458, tStart: 85.50, tEnd: 90.50, text: "Però io ho visto i cieli bruciare dietro gli occhi di Greg Stillson," },
+      { id: 25, para: 2, page: 458, tStart: 90.50, tEnd: 93.00, text: "e so quello che faccio," },
+      { id: 26, para: 2, page: 458, tStart: 93.00, tEnd: 95.50, text: "e so di avere ragione." },
+
+      // PAGINA 458 — PARAGRAFO 3 (01:35.5 - 02:02.5)
+      { id: 27, para: 3, page: 458, tStart: 95.50, tEnd: 99.00, text: "Non piangere per me quando leggerai queste righe." },
+      { id: 28, para: 3, page: 458, tStart: 99.00, tEnd: 103.00, text: "Sei felice con Walt, hai un bambino meraviglioso," },
+      { id: 29, para: 3, page: 458, tStart: 103.00, tEnd: 107.50, text: "e sapere che entrambi vivrete in un mondo che avrà ancora un domani" },
+      { id: 30, para: 3, page: 458, tStart: 107.50, tEnd: 110.50, text: "mi basta per andarmene in pace." },
+      { id: 31, para: 3, page: 458, tStart: 110.50, tEnd: 114.50, text: "Ricordati soltanto che non c'è stata nessun'altra per me, tranne te." },
+      { id: 32, para: 3, page: 458, tStart: 114.50, tEnd: 118.50, text: "Evidentemente il nostro destino su quella ruota era diverso." },
+      { id: 33, para: 3, page: 458, tStart: 118.50, tEnd: 120.80, text: "Io ti amerò sempre, Sarah." },
+      { id: 34, para: 3, page: 458, tStart: 120.80, tEnd: 122.50, text: "Tuo, Johnny." },
+
+      // PAGINA 459 — PARAGRAFO 4 (02:02.5 - 02:30.5)
+      { id: 35, para: 4, page: 459, tStart: 122.50, tEnd: 126.00, text: "Era una limpida mattina di fine aprile" },
+      { id: 36, para: 4, page: 459, tStart: 126.00, tEnd: 132.50, text: "quando Sarah salì da sola lungo il pendio erboso del piccolo cimitero di Pownal." },
+      { id: 37, para: 4, page: 459, tStart: 132.50, tEnd: 137.00, text: "La neve del lungo inverno del Maine si era finalmente sciolta," },
+      { id: 38, para: 4, page: 459, tStart: 137.00, tEnd: 142.50, text: "lasciando il posto a un vento tiepido che profumava di pino e di terra bagnata." },
+      { id: 39, para: 4, page: 459, tStart: 142.50, tEnd: 147.00, text: "Si inginocchiò davanti alla lapide semplice di granito grigio:" },
+      { id: 40, para: 4, page: 459, tStart: 147.00, tEnd: 150.50, text: "JOHN SMITH, 1947–1979." },
+
+      // PAGINA 459 — PARAGRAFO 5 (02:30.5 - 02:57.5)
+      { id: 41, para: 5, page: 459, tStart: 150.50, tEnd: 156.00, text: "Tirò fuori dalla borsetta la busta ormai consumata arrivata dall'Arizona mesi prima." },
+      { id: 42, para: 5, page: 459, tStart: 156.00, tEnd: 160.50, text: "La fotografia scattata a Jackson aveva fatto il giro del mondo:" },
+      { id: 43, para: 5, page: 459, tStart: 160.50, tEnd: 167.50, text: "Greg Stillson che si faceva scudo con un bambino terrorizzato per pararsi dai colpi di fucile." },
+      { id: 44, para: 5, page: 459, tStart: 167.50, tEnd: 172.50, text: "L'uomo politico era finito per sempre, distrutto dalla sua stessa vigliaccheria." },
+      { id: 45, para: 5, page: 459, tStart: 172.50, tEnd: 177.50, text: "Solo Sarah sapeva quale orrore invisibile Johnny avesse fermato pagando con la propria vita." },
+
+      // PAGINA 459 — PARAGRAFO 6 (02:57.5 - 03:22.0)
+      { id: 46, para: 6, page: 459, tStart: 177.50, tEnd: 183.00, text: "Appoggiò il palmo della mano nuda sull'erba nuova che cresceva sopra di lui e chiuse gli occhi." },
+      { id: 47, para: 6, page: 459, tStart: 183.00, tEnd: 187.50, text: "«Sono venuta a dirti addio, Johnny» sussurrò nel silenzio della collina." },
+      { id: 48, para: 6, page: 459, tStart: 187.50, tEnd: 191.50, text: "Per un istante, nitido come un raggio di sole attraverso i rami," },
+      { id: 49, para: 6, page: 459, tStart: 191.50, tEnd: 194.20, text: "le parve di vederlo lì accanto a lei:" },
+      { id: 50, para: 6, page: 459, tStart: 194.20, tEnd: 198.50, text: "non scavato dalla malattia e dalla sofferenza, ma giovane," },
+      { id: 51, para: 6, page: 459, tStart: 198.50, tEnd: 202.00, text: "col sorriso luminoso della sera alla fiera." },
+
+      // PAGINA 459 — PARAGRAFO 7 (03:22.0 - 03:41.0)
+      { id: 52, para: 7, page: 459, tStart: 202.00, tEnd: 206.50, text: "Una brezza leggera le sfiorò i capelli e le dita, calda come un'ultima carezza." },
+      { id: 53, para: 7, page: 459, tStart: 206.50, tEnd: 209.80, text: "Nella sua mente risuonò una voce dolce e profonda:" },
+      { id: 54, para: 7, page: 459, tStart: 209.80, tEnd: 214.20, text: "«Va tutto bene, Sarah. È tutto finito. Ora va' a casa e vivi.»" },
+      { id: 55, para: 7, page: 459, tStart: 214.20, tEnd: 217.80, text: "Sarah si rialzò con il volto rigato di lacrime, ma il peso gelido nel petto era scomparso." },
+      { id: 56, para: 7, page: 459, tStart: 217.80, tEnd: 221.00, text: "Sorrise tra le lacrime, voltò le spalle alla collina e tornò verso la luce." }
+    ];
+
+    const WORD_TIMELINE = [];
+
+    function computeWordProsodyWeight(wordStr) {
+      const clean = wordStr.replace(/[.,;:!?«»—]/g, '');
+      let weight = Math.max(1.6, Math.pow(clean.length, 0.78));
+      if (/[.,;:]/.test(wordStr)) weight += 2.0;
+      if (/[—:]/.test(wordStr)) weight += 2.4;
+      if (/[.!?»]$/.test(wordStr)) weight += 3.2;
+      return weight;
+    }
+
+    function buildWordByWordDOMAndTimeline() {
+      WORD_TIMELINE.length = 0;
+      let globalWordIndex = 0;
+
+      SYNC_SEGMENTS.forEach((seg) => {
+        const segEl = document.getElementById(`seg-${seg.id}`);
+        if (!segEl) return;
+
+        const rawWords = seg.text.trim().split(/\s+/);
+        const weights = rawWords.map(computeWordProsodyWeight);
+        const totalWeight = weights.reduce((a, b) => a + b, 0);
+        const segDuration = Math.max(0.4, seg.tEnd - seg.tStart - 0.1);
+
+        let cursorTime = seg.tStart;
+        segEl.innerHTML = '';
+        seg.wordIndices = [];
+
+        rawWords.forEach((wText, idx) => {
+          const wDur = (weights[idx] / totalWeight) * segDuration;
+          const wStart = Number(cursorTime.toFixed(2));
+          const wEnd = Number((cursorTime + wDur).toFixed(2));
+          cursorTime += wDur;
+
+          const wIndex = globalWordIndex++;
+          const span = document.createElement('span');
+          span.id = `word-${wIndex}`;
+          span.className = 'sync-word';
+          span.setAttribute('data-start', wStart);
+          span.setAttribute('data-end', wEnd);
+          span.setAttribute('title', `Secondo ${wStart}s — Clicca per saltare qui`);
+          span.textContent = wText;
+          span.onclick = (e) => {
+            e.stopPropagation();
+            seekToExactSecond(wStart);
+          };
+
+          segEl.appendChild(span);
+          if (idx < rawWords.length - 1) {
+            segEl.appendChild(document.createTextNode(' '));
+          }
+
+          const wordEntry = {
+            index: wIndex,
+            word: wText,
+            tStart: wStart,
+            tEnd: wEnd,
+            segId: seg.id,
+            para: seg.para,
+            page: seg.page,
+            el: span
+          };
+          WORD_TIMELINE.push(wordEntry);
+          seg.wordIndices.push(wIndex);
+        });
+      });
+    }
+
+    let isNarrating = false;
+    let finaleAudioEl = new Audio();
+    finaleAudioEl.preload = 'auto';
+    finaleAudioEl.crossOrigin = 'anonymous';
+    let userUploadedVoiceUrl = null;
+    let currentVoiceBlob = null;
+    let activeWordIndex = -1;
+    let activeSegmentId = -1;
+    let syncOffsetSec = 0.0;
+    let virtualTimerStart = 0;
+    let virtualElapsed = 0;
+    let virtualRafId = null;
+
+    function adjustSyncOffset(delta) {
+      syncOffsetSec = Number((syncOffsetSec + delta).toFixed(2));
+      const lbl = document.getElementById('sync-offset-label');
+      if (lbl) lbl.textContent = (syncOffsetSec >= 0 ? `+${syncOffsetSec.toFixed(2)}s` : `${syncOffsetSec.toFixed(2)}s`);
+    }
+
+    function openVoiceDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('StephenKingDeadZoneDB', 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('media')) db.createObjectStore('media');
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e);
+      });
+    }
+
+    async function saveVoiceBlobToDB(blob) {
+      try {
+        const db = await openVoiceDB();
+        const tx = db.transaction('media', 'readwrite');
+        tx.objectStore('media').put(blob, 'finaleVoiceMp3');
+      } catch (e) {}
+    }
+
+    async function loadSavedVoiceFromDB() {
+      if (EMBEDDED_VOICE_BASE64 && EMBEDDED_VOICE_BASE64.startsWith('data:audio')) {
+        userUploadedVoiceUrl = EMBEDDED_VOICE_BASE64;
+        finaleAudioEl.src = userUploadedVoiceUrl;
+        markVoiceReadyUI('Audio Incorporato Pronto');
+        return;
+      }
+      try {
+        const db = await openVoiceDB();
+        const tx = db.transaction('media', 'readonly');
+        const req = tx.objectStore('media').get('finaleVoiceMp3');
+        req.onsuccess = () => {
+          if (req.result instanceof Blob) {
+            currentVoiceBlob = req.result;
+            userUploadedVoiceUrl = URL.createObjectURL(req.result);
+            finaleAudioEl.src = userUploadedVoiceUrl;
+            markVoiceReadyUI('Voce 03:41 Pronta');
+          }
+        };
+      } catch (e) {}
+    }
+
+    function markVoiceReadyUI(labelText) {
+      const txt = document.getElementById('mp3-connect-text');
+      const lbl = document.getElementById('mp3-connect-label');
+      const expBtn = document.getElementById('btn-embed-export');
+      if (txt) txt.textContent = labelText;
+      if (lbl) lbl.className = 'px-3.5 py-2.5 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-semibold cursor-pointer transition-all flex items-center gap-1.5';
+      if (expBtn && currentVoiceBlob) {
+        expBtn.classList.remove('hidden');
+        expBtn.classList.add('flex');
+      }
+    }
+
+    function handleUserVoiceUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      currentVoiceBlob = file;
+      if (userUploadedVoiceUrl && !userUploadedVoiceUrl.startsWith('data:')) {
+        URL.revokeObjectURL(userUploadedVoiceUrl);
+      }
+      userUploadedVoiceUrl = URL.createObjectURL(file);
+      finaleAudioEl.src = userUploadedVoiceUrl;
+      saveVoiceBlobToDB(file);
+      markVoiceReadyUI('Voce 03:41 Pronta');
+      startSyncedReading();
+    }
+
+    function exportSelfContainedHTML() {
+      if (!currentVoiceBlob) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64DataUrl = reader.result;
+        const currentDoc = document.documentElement.outerHTML;
+        const updatedHtml = '<!DOCTYPE html>\n' + currentDoc.replace(
+          /const EMBEDDED_VOICE_BASE64 = "";/,
+          `const EMBEDDED_VOICE_BASE64 = "${base64DataUrl}";`
+        );
+        const blob = new Blob([updatedHtml], { type: 'text/html;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'la_zona_morta_con_audio_incorporato.html';
+        a.click();
+      };
+      reader.readAsDataURL(currentVoiceBlob);
+    }
+
+    function connectVoiceToAnalyser() {
+      if (voiceMediaSourceConnected || !audioCtx || !masterBus) return;
+      try {
+        const src = audioCtx.createMediaElementSource(finaleAudioEl);
+        src.connect(voiceAnalyser);
+        voiceAnalyser.connect(masterBus);
+        voiceMediaSourceConnected = true;
+      } catch (e) {}
+    }
+
+    function formatMMSS_Tenths(sec) {
+      const s = Math.max(0, sec);
+      const m = Math.floor(s / 60);
+      const rem = (s % 60).toFixed(1).padStart(4, '0');
+      return `${String(m).padStart(2, '0')}:${rem}`;
+    }
+
+    function updateSyncAtTime(currentSec, totalDur) {
+      const dur = (totalDur && isFinite(totalDur) && totalDur > 10) ? totalDur : DEFAULT_AUDIO_DURATION;
+      const normalizedSec = Math.max(0, Math.min(DEFAULT_AUDIO_DURATION, ((currentSec / dur) * DEFAULT_AUDIO_DURATION) + syncOffsetSec));
+
+      const timerEl = document.getElementById('audio-timer-display');
+      if (timerEl) {
+        timerEl.textContent = `${formatMMSS_Tenths(currentSec)} / ${formatMMSS_Tenths(dur)}`;
+      }
+      const sliderEl = document.getElementById('sync-timeline-slider');
+      if (sliderEl) {
+        sliderEl.value = Math.min(2210, Math.round((currentSec / dur) * 2210));
+      }
+
+      let foundWord = WORD_TIMELINE[0];
+      for (let i = 0; i < WORD_TIMELINE.length; i++) {
+        if (normalizedSec >= WORD_TIMELINE[i].tStart) {
+          foundWord = WORD_TIMELINE[i];
+        } else {
+          break;
+        }
+      }
+
+      if (!foundWord) return;
+
+      if (activeWordIndex !== foundWord.index) {
+        activeWordIndex = foundWord.index;
+
+        WORD_TIMELINE.forEach((w) => {
+          if (w.para === foundWord.para) {
+            if (w.index < foundWord.index) {
+              w.el.className = 'sync-word word-passed';
+            } else if (w.index === foundWord.index) {
+              w.el.className = 'sync-word word-current';
+            } else {
+              w.el.className = 'sync-word';
+            }
+          } else {
+            w.el.className = 'sync-word';
+          }
+        });
+
+        const badge = document.getElementById('page-progress-badge');
+        if (badge) {
+          badge.textContent = `Parola ${foundWord.index + 1} / ${WORD_TIMELINE.length} • ${formatMMSS_Tenths(normalizedSec)}`;
+        }
+
+        renderKaraokeSubtitle(foundWord.segId, foundWord.index);
+      }
+
+      if (activeSegmentId !== foundWord.segId) {
+        activeSegmentId = foundWord.segId;
+        applyVisualSyncState(foundWord.para);
+      }
+    }
+
+    function renderKaraokeSubtitle(segId, currentWIndex) {
+      const seg = SYNC_SEGMENTS[segId];
+      const subEl = document.getElementById('cinema-live-subtitle');
+      if (!seg || !subEl) return;
+
+      const htmlParts = seg.wordIndices.map((wIdx) => {
+        const wObj = WORD_TIMELINE[wIdx];
+        let cls = 'sub-word';
+        if (wIdx < currentWIndex) cls += ' sub-passed';
+        else if (wIdx === currentWIndex) cls += ' sub-current';
+        return `<span class="${cls}">${wObj.word}</span>`;
+      });
+
+      subEl.innerHTML = `«${htmlParts.join(' ')}»`;
+    }
+
+    function applyVisualSyncState(paraIdx) {
+      const sceneObj = FINALE_SCENES[paraIdx];
+      if (!sceneObj) return;
+
+      if (currentDisplayedPage !== sceneObj.page) {
+        switchBookPage(sceneObj.page);
+      }
+
+      if (currentFinaleSceneIdx !== paraIdx) {
+        previousFinaleSceneIdx = currentFinaleSceneIdx;
+        currentFinaleSceneIdx = paraIdx;
+        sceneTransitionAlpha = 0.0;
+
+        for (let i = 0; i < 8; i++) {
+          const pEl = document.getElementById('para-' + i);
+          if (pEl) pEl.classList.toggle('active-paragraph', i === paraIdx);
+        }
+        document.getElementById('cinema-scene-badge').textContent = sceneObj.title.toUpperCase();
+        const chLabel = document.getElementById('sync-current-chapter-label');
+        if (chLabel) chLabel.textContent = sceneObj.title;
+      }
+    }
+
+    function syncLoopTick() {
+      if (!isNarrating) return;
+
+      if (userUploadedVoiceUrl) {
+        const cur = finaleAudioEl.currentTime || 0;
+        const dur = finaleAudioEl.duration || DEFAULT_AUDIO_DURATION;
+        updateSyncAtTime(cur, dur);
+      } else {
+        const now = performance.now();
+        const cur = virtualElapsed + (now - virtualTimerStart) / 1000;
+        if (cur >= DEFAULT_AUDIO_DURATION) {
+          stopAllNarration(true);
+          return;
+        }
+        updateSyncAtTime(cur, DEFAULT_AUDIO_DURATION);
+      }
+
+      virtualRafId = requestAnimationFrame(syncLoopTick);
+    }
+
+    finaleAudioEl.addEventListener('ended', () => {
+      stopAllNarration(true);
+    });
+
+    function handleMainLeggiButton() {
+      if (isNarrating) {
+        pauseSyncedReading();
+      } else {
+        startSyncedReading();
+      }
+    }
+
+    function startSyncedReading() {
+      initAudioEngine();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+      if (musicBus && audioCtx) {
+        musicBus.gain.setTargetAtTime(0.28, audioCtx.currentTime, 0.5);
+      }
+
+      isNarrating = true;
+      document.getElementById('leggi-btn-icon').textContent = '⏸';
+      document.getElementById('leggi-btn-text').textContent = 'Pausa';
+      document.getElementById('btn-restart-leggi').classList.remove('hidden');
+
+      const pill = document.getElementById('audiobook-live-pill');
+      if (pill) {
+        pill.classList.remove('hidden');
+        pill.classList.add('flex');
+      }
+
+      const customVid = document.getElementById('user-custom-video');
+      if (customVid && !customVid.classList.contains('hidden')) {
+        customVid.play().catch(() => {});
+      }
+
+      if (userUploadedVoiceUrl) {
+        connectVoiceToAnalyser();
+        finaleAudioEl.play().catch(() => {});
+      } else {
+        virtualTimerStart = performance.now();
+      }
+
+      if (virtualRafId) cancelAnimationFrame(virtualRafId);
+      virtualRafId = requestAnimationFrame(syncLoopTick);
+    }
+
+    function pauseSyncedReading() {
+      isNarrating = false;
+      if (virtualRafId) cancelAnimationFrame(virtualRafId);
+
+      if (musicBus && audioCtx) {
+        musicBus.gain.setTargetAtTime(0.75, audioCtx.currentTime, 0.6);
+      }
+
+      if (userUploadedVoiceUrl) {
+        finaleAudioEl.pause();
+      } else {
+        virtualElapsed += (performance.now() - virtualTimerStart) / 1000;
+      }
+
+      const customVid = document.getElementById('user-custom-video');
+      if (customVid && !customVid.classList.contains('hidden')) {
+        customVid.pause();
+      }
+
+      document.getElementById('leggi-btn-icon').textContent = '▶';
+      document.getElementById('leggi-btn-text').textContent = 'Riprendi';
+
+      const pill = document.getElementById('audiobook-live-pill');
+      if (pill) {
+        pill.classList.add('hidden');
+        pill.classList.remove('flex');
+      }
+    }
+
+    function restartSyncedReading() {
+      pauseSyncedReading();
+      virtualElapsed = 0;
+      activeWordIndex = -1;
+      activeSegmentId = -1;
+      if (userUploadedVoiceUrl) {
+        finaleAudioEl.currentTime = 0;
+      }
+      const customVid = document.getElementById('user-custom-video');
+      if (customVid && !customVid.classList.contains('hidden')) {
+        customVid.currentTime = 0;
+      }
+      updateSyncAtTime(0, finaleAudioEl.duration || DEFAULT_AUDIO_DURATION);
+      startSyncedReading();
+    }
+
+    function stopAllNarration(resetToStart = false) {
+      isNarrating = false;
+      if (virtualRafId) cancelAnimationFrame(virtualRafId);
+      if (musicBus && audioCtx) {
+        musicBus.gain.setTargetAtTime(0.75, audioCtx.currentTime, 0.8);
+      }
+      try {
+        finaleAudioEl.pause();
+        if (resetToStart) finaleAudioEl.currentTime = 0;
+      } catch (e) {}
+
+      if (resetToStart) {
+        virtualElapsed = 0;
+        activeWordIndex = -1;
+        activeSegmentId = -1;
+        document.getElementById('leggi-btn-icon').textContent = '▶';
+        document.getElementById('leggi-btn-text').textContent = 'Leggi';
+      }
+
+      const pill = document.getElementById('audiobook-live-pill');
+      if (pill) {
+        pill.classList.add('hidden');
+        pill.classList.remove('flex');
+      }
+    }
+
+    function handleTimelineScrub(sliderValue) {
+      const ratio = parseFloat(sliderValue) / 2210;
+      const dur = (userUploadedVoiceUrl && finaleAudioEl.duration) ? finaleAudioEl.duration : DEFAULT_AUDIO_DURATION;
+      const targetSec = ratio * dur;
+
+      if (userUploadedVoiceUrl) {
+        finaleAudioEl.currentTime = targetSec;
+      } else {
+        virtualElapsed = targetSec;
+        virtualTimerStart = performance.now();
+      }
+      updateSyncAtTime(targetSec, dur);
+    }
+
+    function seekToExactSecond(calibratedSec) {
+      const ratio = calibratedSec / DEFAULT_AUDIO_DURATION;
+      const dur = (userUploadedVoiceUrl && finaleAudioEl.duration) ? finaleAudioEl.duration : DEFAULT_AUDIO_DURATION;
+      const targetSec = Math.max(0, ratio * dur);
+
+      if (userUploadedVoiceUrl) {
+        finaleAudioEl.currentTime = targetSec;
+      } else {
+        virtualElapsed = targetSec;
+        virtualTimerStart = performance.now();
+      }
+      updateSyncAtTime(targetSec, dur);
+      if (!isNarrating) startSyncedReading();
+    }
+
+    /********************************************************************
+     * 5. DATI ATTI NARRATIVI E MODALE VISIONE
+     ********************************************************************/
+    const PLOT_ACTS = [
+      {
+        tag: "ATTO I • 1953–1970 • IL NUMERO 19",
+        title: "La Ruota della Fortuna e il Coma",
+        body: "Johnny Smith, giovane professore di letteratura nel Maine, trascorre una serata al luna park con Sarah Bracknell vincendo ripetutamente sul numero 19. Sulla via del ritorno, il taxi su cui viaggia si scontra frontalmente nella notte: Johnny cade in un coma che durerà quattro anni e mezzo.",
+        symbolName: "LA RUOTA DELLA FORTUNA (N° 19)",
+        symbolDesc: "Simboleggia la casualità e il destino imperscrutabile. Già nel 1953, cadendo sul ghiaccio a sei anni, Johnny aveva avuto una prima fitta di premonizione.",
+        visionActTag: "VISIONE I • IL GHIACCIO E LA RUOTA SUL 19",
+        visionTitle: "Il Presentimento sul Ghiaccio e lo Schianto",
+        visionQuote: "«Non andare sul ghiaccio sottile, Johnny... Qualcuno gli aveva sussurrato quelle parole nel buio quando era soltanto un bambino a Pownal. Ora la Ruota della Fortuna gira sotto le lampadine colorate della fiera, rallenta con un battito secco... tic, tic, tic... e l'indicatore di cuoio si ferma ancora una volta sul numero diciannove. Poi soltanto i fari bianchi nella notte, l'urlo dei freni sull'asfalto bagnato e un'oscurità senza fine lunga quattro anni e mezzo.»",
+        visionExplain: "Il trauma cranico lascia nella corteccia cerebrale una 'zona morta', risvegliando la chiaroveggenza al tatto.",
+        visionTheme: "wheel"
+      },
+      {
+        tag: "ATTO II • MAGGIO 1975 • IL TERZO OCCHIO",
+        title: "La Zona Morta e l'Assassino di Castle Rock",
+        body: "Al risveglio nel maggio 1975, il mondo è cambiato: sua madre è scivolata nel fanatismo religioso e Sarah si è sposata con Walt Hazlett. Tuttavia il contatto fisico gli scatena visioni infallibili: salva vite e smaschera il serial killer di Castle Rock, Frank Dodd.",
+        symbolName: "L'OCCHIO COL TESCHIO E L'IMPERMEABILE GIALLO",
+        symbolDesc: "L'immagine dell'occhio Pickwick: una parte della mente è spenta, ma l'altra apre un varco profondo sulla verità occulta.",
+        visionActTag: "VISIONE II • IL GAZEBO DI CASTLE ROCK",
+        visionTitle: "L'Ombra di Frank Dodd sotto la Neve",
+        visionQuote: "«Nel momento stesso in cui le sue dita sfiorarono la panca di legno gelido del gazebo di Castle Rock, il buio si squarciò come un sipario. Vide la neve cadere silenziosa sotto i lampioni, sentì l'odore acre della paura e vide l'uomo chiuso nel lungo impermeabile giallo da pioggia chinarsi nell'ombra con le forbici lucenti tra le mani. Non era uno straniero venuto da fuori: Johnny vide il distintivo d'argento brillare sotto il colletto. Era Frank Dodd.»",
+        visionExplain: "Johnny aiuta lo sceriffo Bannerman a fermare l'assassino, perdendo la propria privacy e salute.",
+        visionTheme: "gazebo"
+      },
+      {
+        tag: "ATTO III • IL COMIZIO • L'INCUBO NUCLEARE",
+        title: "La Stretta di Mano a Greg Stillson",
+        body: "Lavorando come precettore nel New Hampshire, Johnny stringe la mano a Greg Stillson durante un comizio elettorale. Il contatto svela un futuro devastante: Stillson Presidente scatenerà la Terza Guerra Mondiale.",
+        symbolName: "I MISSILI ATOMICI E LA MASCHERA POPULISTA",
+        symbolDesc: "Dietro l'apparente benevolenza da uomo del popolo, Stillson nasconde una pulsione distruttiva incontrollabile.",
+        visionActTag: "VISIONE III • LA STRETTA DI MANO A STILLSON",
+        visionTitle: "I Cieli che Bruciano e le Tigri nella Notte",
+        visionQuote: "«Quando la mano grande e calda di Greg Stillson strinse la sua tra le bandiere del comizio, Johnny fu scaraventato in avanti nel tempo come da una scarica elettrica. Vide quell'uomo seduto nella stanza dei bottoni con i capelli ormai grigi e gli occhi iniettati di sangue; sentì la sua voce urlare: 'Mandate i missili! Mandateli tutti, adesso!' e vide l'orizzonte intero del mondo sciogliersi in un unico, accecante sole termonucleare.»",
+        visionExplain: "Il momento cardine del romanzo: Johnny comprende di dover sacrificare se stesso per salvare milioni di vite.",
+        visionTheme: "nuke"
+      },
+      {
+        tag: "ATTO IV • JACKSON • LO SCUDO UMANO",
+        title: "Il Dilemma Morale e il Sacrificio",
+        body: "Consapevole di avere un tumore al cervello incurabile, Johnny decide di fermare Stillson a Jackson. Il suo tiro fallisce, ma Stillson afferra un bambino come scudo umano: la foto dello scudo rovina per sempre la carriera del dittatore.",
+        symbolName: "IL FLASH FOTOGRAFICO DELLA VERITÀ",
+        symbolDesc: "Non è la violenza ma la verità a sventare la catastrofe: l'istante di viltà immortalato sulla pellicola.",
+        visionActTag: "VISIONE IV • IL MUNICIPIO DI JACKSON",
+        visionTitle: "Il Lampo del Flash e il Futuro Cancellato",
+        visionQuote: "«Nel fragore degli spari dentro la sala di legno di Jackson, Greg Stillson afferrò il piccolo Sean per la giacca e lo sollevò davanti al proprio petto come uno scudo umano, urlando ai fotografi di non scattare. Ma il lampo bianco del flash esplose nell'aria, fissando per sempre la sua viltà sulla pellicola. Cadendo a terra ferito a morte, Johnny riuscì a sfiorargli un'ultima volta la caviglia: il fuoco atomico era scomparso. Al suo posto non c'era più nulla, soltanto una grande quiete bianca.»",
+        visionExplain: "Johnny spira nella certezza che il futuro di Sarah e del mondo intero sia al sicuro.",
+        visionTheme: "flash"
+      }
+    ];
+
+    let currentPlotActIndex = 0;
+    let visionModalActive = false;
+    let visionAnimId = null;
+
+    function selectPlotNode(idx) {
+      currentPlotActIndex = idx;
+      const act = PLOT_ACTS[idx];
+
+      for (let i = 0; i < 4; i++) {
+        const b = document.getElementById('plot-btn-' + i);
+        if (!b) continue;
+        b.className = (i === idx)
+          ? 'plot-step-btn active text-left p-5 rounded-2xl bg-gradient-to-r from-red-950/70 to-zinc-950/90 border border-red-500 shadow-[0_0_30px_rgba(227,27,35,0.25)] transition-all'
+          : 'plot-step-btn text-left p-5 rounded-2xl bg-zinc-950/85 hover:bg-zinc-900/90 border border-white/10 transition-all';
+      }
+
+      document.getElementById('plot-tag').textContent = act.tag;
+      document.getElementById('plot-heading').textContent = act.title;
+      document.getElementById('plot-description').textContent = act.body;
+      document.getElementById('symbol-name').textContent = act.symbolName;
+      document.getElementById('symbol-explanation').textContent = act.symbolDesc;
+
+      const palette = [0xf5a623, 0xe31b23, 0xff2a1f, 0xffffff];
+      neuralMat.color.setHex(palette[idx]);
+      playPsychicStinger(0.3);
+    }
+
+    function openPsychicVisionExperience() {
+      const act = PLOT_ACTS[currentPlotActIndex];
+      visionModalActive = true;
+
+      const shock = document.getElementById('psychic-shockwave');
+      shock.style.opacity = '0.85';
+      setTimeout(() => { shock.style.opacity = '0'; }, 350);
+      playPsychicStinger(0.6);
+
+      document.getElementById('vision-modal-act-tag').textContent = act.visionActTag;
+      document.getElementById('vision-modal-title').textContent = act.visionTitle;
+      document.getElementById('vision-modal-quote').textContent = act.visionQuote;
+      document.getElementById('vision-modal-explain').textContent = act.visionExplain;
+
+      const modal = document.getElementById('vision-experience-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (!visionAnimId) renderVisionVisualizer();
+    }
+
+    function closePsychicVisionExperience() {
+      visionModalActive = false;
+      if (visionAnimId) {
+        cancelAnimationFrame(visionAnimId);
+        visionAnimId = null;
+      }
+      const modal = document.getElementById('vision-experience-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    const visCanvas = document.getElementById('vision-visualizer-canvas');
+    const vctx = visCanvas.getContext('2d');
+
+    function renderVisionVisualizer() {
+      if (!visionModalActive) {
+        visionAnimId = null;
+        return;
+      }
+      visionAnimId = requestAnimationFrame(renderVisionVisualizer);
+
+      const t = performance.now() * 0.001;
+      const w = visCanvas.width;
+      const h = visCanvas.height;
+      const theme = PLOT_ACTS[currentPlotActIndex].visionTheme;
+
+      vctx.fillStyle = '#050204';
+      vctx.fillRect(0, 0, w, h);
+
+      if (theme === 'wheel') {
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        const rad = 95;
+        vctx.save();
+        vctx.translate(cx, cy);
+        vctx.rotate(t * 1.4);
+        for (let i = 0; i < 19; i++) {
+          const a = (i / 19) * Math.PI * 2;
+          vctx.strokeStyle = i === 0 ? '#f5a623' : 'rgba(255,255,255,0.28)';
+          vctx.lineWidth = i === 0 ? 3.5 : 1.5;
+          vctx.beginPath();
+          vctx.moveTo(0, 0);
+          vctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+          vctx.stroke();
+        }
+        vctx.strokeStyle = '#e31b23';
+        vctx.lineWidth = 4;
+        vctx.beginPath();
+        vctx.arc(0, 0, rad, 0, Math.PI * 2);
+        vctx.stroke();
+        vctx.restore();
+
+        vctx.fillStyle = '#ffffff';
+        vctx.font = '900 34px "Rubik Dirt", sans-serif';
+        vctx.textAlign = 'center';
+        vctx.fillText('19', cx, cy + 12);
+      } else if (theme === 'gazebo') {
+        const gx = w * 0.5;
+        vctx.strokeStyle = 'rgba(255,255,255,0.75)';
+        vctx.lineWidth = 3;
+        vctx.beginPath();
+        vctx.moveTo(gx - 85, h * 0.45);
+        vctx.lineTo(gx, h * 0.16);
+        vctx.lineTo(gx + 85, h * 0.45);
+        vctx.closePath();
+        vctx.stroke();
+        for (let x = -60; x <= 60; x += 40) {
+          vctx.beginPath();
+          vctx.moveTo(gx + x, h * 0.45);
+          vctx.lineTo(gx + x, h * 0.85);
+          vctx.stroke();
+        }
+      } else if (theme === 'nuke') {
+        const pulse = 1 + Math.sin(t * 3.5) * 0.12;
+        const nukeGrad = vctx.createRadialGradient(w * 0.5, h * 0.65, 10, w * 0.5, h * 0.6, 230 * pulse);
+        nukeGrad.addColorStop(0, '#ffffff');
+        nukeGrad.addColorStop(0.25, '#f5a623');
+        nukeGrad.addColorStop(0.6, '#e31b23');
+        nukeGrad.addColorStop(1, '#050002');
+        vctx.fillStyle = nukeGrad;
+        vctx.fillRect(0, 0, w, h);
+      } else {
+        const flashBurst = Math.pow(Math.max(0, Math.sin(t * 3.0)), 12);
+        vctx.fillStyle = `rgba(255, 255, 255, ${0.06 + flashBurst * 0.7})`;
+        vctx.fillRect(0, 0, w, h);
+      }
+
+      vctx.strokeStyle = 'rgba(227, 27, 35, 0.85)';
+      vctx.lineWidth = 2;
+      for (let x = 0; x < w; x += 8) {
+        const spike = Math.sin(x * 0.04 + t * 12) * Math.cos(x * 0.09 - t * 7) * 14;
+        const y = h - 28 + spike;
+        if (x === 0) vctx.moveTo(x, y);
+        else vctx.lineTo(x, y);
+      }
+      vctx.stroke();
+    }
+
+    /********************************************************************
+     * 6. SCENE CINEMA E CAMBIO PAGINA
+     ********************************************************************/
+    const FINALE_SCENES = [
+      { page: 458, sceneNum: 1, title: "458.1 • La Lettera nella Notte di Phoenix", visualMode: "desk_letter" },
+      { page: 458, sceneNum: 2, title: "458.2 • Dal Coma al Dono", visualMode: "dead_zone_eye" },
+      { page: 458, sceneNum: 3, title: "458.3 • I Cieli che Bruciano a Jackson", visualMode: "burning_skies" },
+      { page: 458, sceneNum: 4, title: "458.4 • L'Ultimo Addio a Sarah", visualMode: "wheel_farewell" },
+      { page: 459, sceneNum: 5, title: "459.1 • La Collina di Pownal in Primavera", visualMode: "pownal_hill" },
+      { page: 459, sceneNum: 6, title: "459.2 • La Fotografia dello Scudo Umano", visualMode: "camera_flash" },
+      { page: 459, sceneNum: 7, title: "459.3 • La Mano sull'Erba Nuova", visualMode: "hand_on_grass" },
+      { page: 459, sceneNum: 8, title: "459.4 • «Va' a casa e vivi»", visualMode: "final_sunrise" }
+    ];
+
+    let currentFinaleSceneIdx = 0;
+    let previousFinaleSceneIdx = 0;
+    let sceneTransitionAlpha = 1.0;
+    let currentDisplayedPage = 458;
+
+    function switchBookPage(pageNum) {
+      const sheet = document.getElementById('book-sheet-container');
+      const is458 = pageNum === 458;
+
+      if (currentDisplayedPage !== pageNum && sheet) {
+        sheet.classList.add('turning-page');
+        setTimeout(() => sheet.classList.remove('turning-page'), 380);
+      }
+      currentDisplayedPage = pageNum;
+
+      document.getElementById('tab-page-458').className = is458
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-500 text-black transition-all shadow'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white/10 text-zinc-300 hover:bg-white/20 transition-all';
+
+      document.getElementById('tab-page-459').className = !is458
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-500 text-black transition-all shadow'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white/10 text-zinc-300 hover:bg-white/20 transition-all';
+
+      document.getElementById('page-458-content').classList.toggle('hidden', !is458);
+      document.getElementById('page-459-content').classList.toggle('hidden', is458);
+
+      document.getElementById('sheet-page-number').textContent = pageNum;
+      document.getElementById('sheet-footer-num').textContent = `— ${pageNum} —`;
+      document.getElementById('sheet-running-head').textContent = is458
+        ? 'LA ZONA MORTA • LA LETTERA A SARAH'
+        : 'LA ZONA MORTA • EPILOGO A POWNAL';
+    }
+
+    function handleUserVideoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const vid = document.getElementById('user-custom-video');
+      vid.src = url;
+      vid.classList.remove('hidden');
+      document.getElementById('btn-reset-video').classList.remove('hidden');
+      if (isNarrating) {
+        vid.currentTime = finaleAudioEl.currentTime || 0;
+        vid.play().catch(() => {});
+      }
+    }
+
+    function disableUserVideo() {
+      const vid = document.getElementById('user-custom-video');
+      vid.pause();
+      vid.classList.add('hidden');
+      document.getElementById('btn-reset-video').classList.add('hidden');
+    }
+
+    /********************************************************************
+     * 7. MOTORE CINEMATOGRAFICO 35MM (CANVAS 2D)
+     ********************************************************************/
+    const cineCanvas = document.getElementById('cinema-35mm-canvas');
+    const cctx = cineCanvas.getContext('2d');
+
+    const bokehParticles = Array.from({ length: 90 }, () => ({
+      x: Math.random() * 1280,
+      y: Math.random() * 720,
+      r: 1.2 + Math.random() * 4.5,
+      vy: 0.35 + Math.random() * 1.1,
+      vx: (Math.random() - 0.5) * 0.5,
+      alpha: 0.15 + Math.random() * 0.5
+    }));
+
+    const freqDataArray = new Uint8Array(128);
+
+    function getVoiceAmplitude() {
+      if (!isNarrating) return 0;
+      if (voiceAnalyser && voiceMediaSourceConnected) {
+        voiceAnalyser.getByteFrequencyData(freqDataArray);
+        let sum = 0;
+        for (let i = 2; i < 36; i++) sum += freqDataArray[i];
+        return (sum / 34) / 255;
+      }
+      const t = performance.now() * 0.001;
+      return 0.35 + 0.25 * Math.sin(t * 19) * Math.cos(t * 11);
+    }
+
+    function drawCinemaSceneMode(ctx, mode, w, h, t, voiceAmp) {
+      if (mode === 'desk_letter') {
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#04050a');
+        bgGrad.addColorStop(0.5, '#0d0907');
+        bgGrad.addColorStop(1, '#020204');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(30, 58, 138, 0.14)';
+        for (let i = 0; i < 9; i++) {
+          ctx.fillRect(w * 0.58, 70 + i * 38, w * 0.34, 18);
+        }
+        ctx.restore();
+
+        const lampCone = ctx.createRadialGradient(w * 0.32, h * 0.22, 15, w * 0.45, h * 0.55, 680);
+        lampCone.addColorStop(0, `rgba(253, 224, 71, ${0.55 + voiceAmp * 0.15})`);
+        lampCone.addColorStop(0.45, 'rgba(245, 158, 11, 0.24)');
+        lampCone.addColorStop(0.75, 'rgba(185, 28, 28, 0.08)');
+        lampCone.addColorStop(1, 'transparent');
+        ctx.fillStyle = lampCone;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = '#120b07';
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.62);
+        ctx.lineTo(w, h * 0.54);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(w * 0.46, h * 0.56);
+        ctx.rotate(-0.055);
+        ctx.fillStyle = '#f6ecd9';
+        ctx.shadowColor = 'rgba(245, 166, 35, 0.5)';
+        ctx.shadowBlur = 45;
+        ctx.fillRect(-230, -135, 460, 270);
+
+        ctx.strokeStyle = 'rgba(120, 90, 60, 0.18)';
+        ctx.lineWidth = 1;
+        for (let y = -70; y <= 95; y += 28) {
+          ctx.beginPath();
+          ctx.moveTo(-195, y);
+          ctx.lineTo(195, y);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(185, 28, 28, 0.55)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(155, -88, 28, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(185, 28, 28, 0.65)';
+        ctx.font = '700 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('PHOENIX AZ', 155, -85);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1c1510';
+        ctx.font = 'italic 600 25px "EB Garamond", serif';
+        ctx.fillText('Cara Sarah,', -190, -82);
+
+        const activeWordStr = WORD_TIMELINE[Math.max(0, activeWordIndex)]?.word || '';
+        ctx.font = 'italic 20px "EB Garamond", serif';
+        ctx.fillText('questa è una lettera difficile da scrivere,', -190, -46);
+        ctx.fillText('perciò cercherò di essere breve. Quando il postino', -190, -18);
+        ctx.fillText('te la consegnerà a Bangor, tutto sarà già compiuto...', -190, 10);
+        ctx.fillStyle = '#991b1b';
+        ctx.font = 'italic 700 22px "EB Garamond", serif';
+        ctx.fillText(`« ${activeWordStr} »`, -190, 56);
+        ctx.restore();
+
+      } else if (mode === 'dead_zone_eye') {
+        const bg = ctx.createRadialGradient(w * 0.5, h * 0.46, 20, w * 0.5, h * 0.46, 620);
+        bg.addColorStop(0, `rgba(227, 27, 35, ${0.42 + voiceAmp * 0.25})`);
+        bg.addColorStop(0.45, 'rgba(15, 23, 42, 0.85)');
+        bg.addColorStop(1, '#020308');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < w; x += 48) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = 0; y < h; y += 48) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(248, 113, 113, 0.55)';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = '#ef4444';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        for (let x = 0; x < w; x += 4) {
+          const phase = ((x + t * 240) % 220) / 220;
+          let ecgOffset = 0;
+          if (phase > 0.42 && phase < 0.46) ecgOffset = -14;
+          else if (phase >= 0.46 && phase < 0.50) ecgOffset = 68;
+          else if (phase >= 0.50 && phase < 0.54) ecgOffset = -32;
+          else if (phase > 0.62 && phase < 0.70) ecgOffset = 16 * Math.sin((phase - 0.62) * Math.PI / 0.08);
+          const y = h * 0.24 - ecgOffset;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        const pulse = 1 + Math.sin(t * 2.5) * 0.04 + voiceAmp * 0.08;
+        ctx.save();
+        ctx.translate(w * 0.5, h * 0.48);
+        ctx.scale(pulse, pulse);
+
+        for (let i = 0; i < 24; i++) {
+          const a = (i / 24) * Math.PI * 2 + t * 0.15;
+          ctx.strokeStyle = i % 2 === 0 ? 'rgba(245, 166, 35, 0.32)' : 'rgba(227, 27, 35, 0.38)';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * 95, Math.sin(a) * 95);
+          ctx.quadraticCurveTo(Math.cos(a + 0.2) * 190, Math.sin(a - 0.2) * 140, Math.cos(a) * 320, Math.sin(a) * 200);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-290, 0);
+        ctx.quadraticCurveTo(0, -185, 290, 0);
+        ctx.quadraticCurveTo(0, 185, -290, 0);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 96, 0, Math.PI * 2);
+        ctx.fillStyle = '#07070b';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#f5a623';
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(228, 228, 231, 0.85)';
+        ctx.beginPath();
+        ctx.arc(0, -12, 46, Math.PI * 0.85, Math.PI * 2.15);
+        ctx.lineTo(28, 42);
+        ctx.lineTo(-28, 42);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.arc(-16, -4, 11, 0, Math.PI * 2);
+        ctx.arc(16, -4, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+      } else if (mode === 'burning_skies') {
+        const sky = ctx.createLinearGradient(0, 0, 0, h);
+        sky.addColorStop(0, '#2a0406');
+        sky.addColorStop(0.45, '#991b1b');
+        sky.addColorStop(0.76, '#ea580c');
+        sky.addColorStop(0.92, '#fde047');
+        sky.addColorStop(1, '#090404');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, w, h);
+
+        const blastRadius = 320 + Math.sin(t * 3.2) * 35 + voiceAmp * 90;
+        const blast = ctx.createRadialGradient(w * 0.5, h * 0.72, 10, w * 0.5, h * 0.68, blastRadius);
+        blast.addColorStop(0, '#ffffff');
+        blast.addColorStop(0.3, 'rgba(253, 224, 71, 0.85)');
+        blast.addColorStop(0.65, 'rgba(220, 38, 38, 0.45)');
+        blast.addColorStop(1, 'transparent');
+        ctx.fillStyle = blast;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = '#070304';
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.75);
+        for (let x = 0; x <= w; x += 45) {
+          const stepH = (x % 90 === 0) ? 28 : 8;
+          ctx.lineTo(x, h * 0.75 - stepH);
+        }
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.fill();
+
+        ctx.save();
+        const swayX = Math.sin(t * 1.4) * 22;
+        const swayY = Math.cos(t * 1.9) * 14;
+        ctx.translate(w * 0.5 + swayX, h * 0.46 + swayY);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 145, 0, Math.PI * 2);
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.moveTo(-190, 0); ctx.lineTo(-30, 0);
+        ctx.moveTo(30, 0);  ctx.lineTo(190, 0);
+        ctx.moveTo(0, -190); ctx.lineTo(0, -30);
+        ctx.moveTo(0, 30);  ctx.lineTo(0, 190);
+        ctx.stroke();
+        ctx.restore();
+
+      } else if (mode === 'wheel_farewell') {
+        const night = ctx.createRadialGradient(w * 0.5, h * 0.45, 30, w * 0.5, h * 0.5, 680);
+        night.addColorStop(0, 'rgba(245, 166, 35, 0.38)');
+        night.addColorStop(0.5, 'rgba(30, 58, 138, 0.32)');
+        night.addColorStop(1, '#03040a');
+        ctx.fillStyle = night;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.save();
+        ctx.translate(w * 0.5, h * 0.45);
+        ctx.rotate(t * 0.22);
+        const radius = 195;
+
+        for (let i = 0; i < 19; i++) {
+          const a = (i / 19) * Math.PI * 2;
+          ctx.strokeStyle = i === 0 ? '#fde047' : 'rgba(245, 166, 35, 0.45)';
+          ctx.lineWidth = i === 0 ? 4 : 2;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+          ctx.stroke();
+
+          const bx = Math.cos(a) * radius;
+          const by = Math.sin(a) * radius;
+          ctx.fillStyle = (i % 2 === 0) ? '#fde047' : '#ef4444';
+          ctx.beginPath();
+          ctx.arc(bx, by, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.strokeStyle = '#f5a623';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 44px "Rubik Dirt", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('19', w * 0.5, h * 0.47);
+
+      } else if (mode === 'pownal_hill') {
+        const springSky = ctx.createLinearGradient(0, 0, 0, h);
+        springSky.addColorStop(0, '#0f172a');
+        springSky.addColorStop(0.48, '#1e3a5f');
+        springSky.addColorStop(0.76, '#d97706');
+        springSky.addColorStop(1, '#060907');
+        ctx.fillStyle = springSky;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.save();
+        for (let i = 0; i < 5; i++) {
+          const rayGrad = ctx.createLinearGradient(w * 0.2 + i * 160, 0, w * 0.35 + i * 190, h);
+          rayGrad.addColorStop(0, 'rgba(253, 224, 71, 0.16)');
+          rayGrad.addColorStop(1, 'transparent');
+          ctx.fillStyle = rayGrad;
+          ctx.beginPath();
+          ctx.moveTo(w * 0.15 + i * 160, 0);
+          ctx.lineTo(w * 0.25 + i * 160, 0);
+          ctx.lineTo(w * 0.48 + i * 190, h);
+          ctx.lineTo(w * 0.30 + i * 190, h);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+
+        ctx.fillStyle = '#0c1914';
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.68);
+        ctx.quadraticCurveTo(w * 0.35, h * 0.54, w, h * 0.66);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.fill();
+
+        ctx.fillStyle = '#07110b';
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.74);
+        ctx.quadraticCurveTo(w * 0.5, h * 0.58, w, h * 0.78);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.fill();
+
+        const tx = w * 0.46;
+        const ty = h * 0.40;
+        const tw = 160;
+        const th = 205;
+        const stoneGrad = ctx.createLinearGradient(tx, ty, tx + tw, ty + th);
+        stoneGrad.addColorStop(0, '#3f3f46');
+        stoneGrad.addColorStop(0.5, '#27272a');
+        stoneGrad.addColorStop(1, '#18181b');
+        ctx.fillStyle = stoneGrad;
+        ctx.strokeStyle = 'rgba(253, 224, 71, 0.65)';
+        ctx.lineWidth = 2.5;
+        ctx.roundRect(tx, ty, tw, th, [75, 75, 4, 4]);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#e4e4e7';
+        ctx.textAlign = 'center';
+        ctx.font = '700 20px "EB Garamond", serif';
+        ctx.fillText('JOHN SMITH', tx + tw / 2, ty + 88);
+        ctx.font = '600 16px "EB Garamond", serif';
+        ctx.fillText('1947 – 1979', tx + tw / 2, ty + 116);
+        ctx.font = 'italic 13px "EB Garamond", serif';
+        ctx.fillStyle = '#a1a1aa';
+        ctx.fillText('«Rest in Peace»', tx + tw / 2, ty + 146);
+
+      } else if (mode === 'camera_flash') {
+        const flashBurst = Math.pow(Math.max(0, Math.sin(t * 3.4)), 14);
+        const bg = ctx.createRadialGradient(w * 0.5, h * 0.48, 20, w * 0.5, h * 0.5, 680);
+        bg.addColorStop(0, `rgba(255, 255, 255, ${0.24 + flashBurst * 0.72})`);
+        bg.addColorStop(0.5, 'rgba(185, 28, 28, 0.28)');
+        bg.addColorStop(1, '#040407');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.save();
+        ctx.translate(w * 0.5, h * 0.46);
+        ctx.rotate(Math.sin(t * 0.6) * 0.03);
+        ctx.fillStyle = '#f4f4f5';
+        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowBlur = 40;
+        ctx.fillRect(-260, -170, 520, 330);
+
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(-240, -150, 480, 260);
+
+        ctx.fillStyle = '#3f3f46';
+        ctx.beginPath();
+        ctx.arc(0, -35, 38, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-52, 5, 104, 105);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '700 15px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('PRESS ARCHIVE • JACKSON, NH • STILLSON EXPOSED', 0, 142);
+        ctx.restore();
+
+      } else if (mode === 'hand_on_grass') {
+        const sunbeam = ctx.createRadialGradient(w * 0.68, h * 0.14, 20, w * 0.5, h * 0.5, 760);
+        sunbeam.addColorStop(0, 'rgba(254, 240, 138, 0.72)');
+        sunbeam.addColorStop(0.45, 'rgba(245, 158, 11, 0.30)');
+        sunbeam.addColorStop(1, '#040906');
+        ctx.fillStyle = sunbeam;
+        ctx.fillRect(0, 0, w, h);
+
+        for (let i = 0; i < 75; i++) {
+          const gx = (i / 75) * w;
+          const sway = Math.sin(t * 2.1 + i * 0.35) * 18;
+          ctx.strokeStyle = i % 3 === 0 ? 'rgba(253, 224, 71, 0.65)' : 'rgba(74, 222, 128, 0.45)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(gx, h - 30);
+          ctx.quadraticCurveTo(gx + sway * 0.5, h - 95, gx + sway, h - 145 - (i % 6) * 16);
+          ctx.stroke();
+        }
+
+      } else {
+        const sunrise = ctx.createLinearGradient(0, 0, 0, h);
+        sunrise.addColorStop(0, '#1e1b4b');
+        sunrise.addColorStop(0.38, '#9a3412');
+        sunrise.addColorStop(0.68, '#f59e0b');
+        sunrise.addColorStop(0.88, '#fef08a');
+        sunrise.addColorStop(1, '#09090b');
+        ctx.fillStyle = sunrise;
+        ctx.fillRect(0, 0, w, h);
+
+        const sunGlow = ctx.createRadialGradient(w * 0.5, h * 0.60, 15, w * 0.5, h * 0.60, 380);
+        sunGlow.addColorStop(0, 'rgba(255, 255, 255, 0.96)');
+        sunGlow.addColorStop(0.45, 'rgba(253, 224, 71, 0.55)');
+        sunGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = sunGlow;
+        ctx.fillRect(0, 0, w, h);
+
+        const flare = ctx.createLinearGradient(w * 0.1, h * 0.60, w * 0.9, h * 0.60);
+        flare.addColorStop(0, 'transparent');
+        flare.addColorStop(0.5, 'rgba(255, 255, 255, 0.65)');
+        flare.addColorStop(1, 'transparent');
+        ctx.fillStyle = flare;
+        ctx.fillRect(w * 0.1, h * 0.59, w * 0.8, 6);
+      }
+    }
+
+    let isCinemaVisible = true;
+    const cinemaObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { isCinemaVisible = e.isIntersecting; });
+    }, { threshold: 0.1 });
+    cinemaObserver.observe(cineCanvas);
+
+    function render35mmCinema() {
+      requestAnimationFrame(render35mmCinema);
+      if (!isCinemaVisible) return;
+
+      const t = performance.now() * 0.001;
+      const w = cineCanvas.width;
+      const h = cineCanvas.height;
+      const voiceAmp = getVoiceAmplitude();
+
+      if (sceneTransitionAlpha < 1.0) {
+        sceneTransitionAlpha = Math.min(1.0, sceneTransitionAlpha + 0.035);
+      }
+
+      cctx.save();
+      const camZoom = 1.03 + Math.sin(t * 0.35) * 0.025;
+      const camPanX = Math.cos(t * 0.28) * 14;
+      const camPanY = Math.sin(t * 0.22) * 8;
+      cctx.translate(w * 0.5 + camPanX, h * 0.5 + camPanY);
+      cctx.scale(camZoom, camZoom);
+      cctx.translate(-w * 0.5, -h * 0.5);
+
+      const currentMode = FINALE_SCENES[currentFinaleSceneIdx].visualMode;
+      if (sceneTransitionAlpha < 1.0 && previousFinaleSceneIdx !== currentFinaleSceneIdx) {
+        const prevMode = FINALE_SCENES[previousFinaleSceneIdx].visualMode;
+        drawCinemaSceneMode(cctx, prevMode, w, h, t, voiceAmp);
+        cctx.globalAlpha = sceneTransitionAlpha;
+        drawCinemaSceneMode(cctx, currentMode, w, h, t, voiceAmp);
+        cctx.globalAlpha = 1.0;
+      } else {
+        drawCinemaSceneMode(cctx, currentMode, w, h, t, voiceAmp);
+      }
+      cctx.restore();
+
+      bokehParticles.forEach(p => {
+        p.y += (currentFinaleSceneIdx >= 4 ? -p.vy * 0.65 : p.vy);
+        p.x += p.vx + Math.sin(t + p.y * 0.01) * 0.3;
+        if (p.y > h) p.y = -10;
+        if (p.y < -10) p.y = h;
+        if (p.x > w) p.x = 0;
+        if (p.x < 0) p.x = w;
+
+        cctx.beginPath();
+        cctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        cctx.fillStyle = currentFinaleSceneIdx >= 4
+          ? `rgba(253, 230, 138, ${p.alpha})`
+          : `rgba(255, 250, 240, ${p.alpha})`;
+        cctx.fill();
+      });
+
+      if (isNarrating) {
+        cctx.save();
+        cctx.strokeStyle = currentFinaleSceneIdx >= 4 ? 'rgba(245, 166, 35, 0.85)' : 'rgba(227, 27, 35, 0.85)';
+        cctx.lineWidth = 2.5;
+        cctx.beginPath();
+        for (let x = 260; x < w - 260; x += 6) {
+          const wave = Math.sin(x * 0.045 + t * 20) * Math.cos(x * 0.02 - t * 12) * (6 + voiceAmp * 28);
+          const y = h - 128 + wave;
+          if (x === 260) cctx.moveTo(x, y);
+          else cctx.lineTo(x, y);
+        }
+        cctx.stroke();
+        cctx.restore();
+      }
+
+      cctx.fillStyle = '#000000';
+      cctx.fillRect(0, 0, w, 42);
+      cctx.fillRect(0, h - 42, w, 42);
+    }
+
+    buildWordByWordDOMAndTimeline();
+    loadSavedVoiceFromDB();
+    render35mmCinema();
+  </script>
+</body>
+</html>
